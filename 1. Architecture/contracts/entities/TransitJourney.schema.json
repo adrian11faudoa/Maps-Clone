@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/TransitJourney.schema.json",
+  "title": "TransitJourney",
+  "description": "A computed multi-leg transit itinerary returned as part of a transit-mode Route. Reserved boundary \u2014 no implementation in this volume.",
+  "type": "object",
+  "x-owning-domain": "Routing (transit mode, future)",
+  "x-authoritative-storage": "Same store as Route (reserved)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "route_id"
+  ],
+  "x-mutable-fields": [
+    "legs"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "route_id",
+    "legs"
+  ],
+  "properties": {
+    "route_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "legs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "transit_route_id": {
+            "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+          },
+          "board_stop_id": {
+            "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+          },
+          "alight_stop_id": {
+            "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+          },
+          "scheduled_departure": {
+            "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+          },
+          "scheduled_arrival": {
+            "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "Route"
+    ]
+  }
+}

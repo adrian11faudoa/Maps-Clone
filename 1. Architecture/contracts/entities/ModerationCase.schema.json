@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/ModerationCase.schema.json",
+  "title": "ModerationCase",
+  "description": "A moderation workflow case opened against any moderatable subject.",
+  "type": "object",
+  "x-owning-domain": "Moderation & Administration",
+  "x-authoritative-storage": "PostgreSQL moderation.moderation_case",
+  "x-privacy-classification": "administrative_data",
+  "x-immutable-fields": [
+    "id",
+    "subject_type",
+    "subject_id",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "status",
+    "assigned_moderator_id",
+    "decision",
+    "closed_at"
+  ],
+  "x-deletion-semantics": "soft-delete only",
+  "x-authorization": "moderator/admin only.",
+  "required": [
+    "id",
+    "subject_type",
+    "subject_id",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "subject_type": {
+      "type": "string",
+      "enum": [
+        "place",
+        "review",
+        "media",
+        "contribution",
+        "user"
+      ]
+    },
+    "subject_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/ModerationCaseStatus/values"
+    },
+    "assigned_moderator_id": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decision": {
+      "anyOf": [
+        {
+          "$ref": "../enums/registry.json#/enums/ModerationDecision/values"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "closed_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "ModerationCaseStatus",
+  "x-relationships": {
+    "has_many": [
+      "AuditRecord"
+    ]
+  }
+}

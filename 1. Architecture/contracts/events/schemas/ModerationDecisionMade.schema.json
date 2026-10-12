@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/ModerationDecisionMade.schema.json",
+  "title": "ModerationDecisionMade",
+  "description": "Published by Moderation & Administration when a moderation case is decided; consumed by the owning domain to apply the decision.",
+  "type": "object",
+  "required": [
+    "moderation_case_id",
+    "subject_type",
+    "subject_id",
+    "decision",
+    "moderator_user_id"
+  ],
+  "properties": {
+    "moderation_case_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "subject_type": {
+      "type": "string",
+      "enum": [
+        "place",
+        "review",
+        "media",
+        "contribution",
+        "user"
+      ]
+    },
+    "subject_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "approve",
+        "reject",
+        "escalate",
+        "request_more_info"
+      ]
+    },
+    "moderator_user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/queues/media-processing.schema.json",
+  "title": "media-processing",
+  "description": "Validates, scans, and generates derivatives for an uploaded MediaAsset.",
+  "type": "object",
+  "x-max-attempts": 3,
+  "x-timeout-ms": 60000,
+  "x-concurrency": "Moderate; bounded by scanning-provider quota.",
+  "x-deduplication": "Keyed by media_asset_id; reprocessing overwrites the same derivative storage keys safely.",
+  "required": [
+    "job_id",
+    "job_type",
+    "job_version",
+    "payload",
+    "created_at",
+    "available_at",
+    "attempt",
+    "correlation_id"
+  ],
+  "properties": {
+    "job_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "job_type": {
+      "const": "media-processing"
+    },
+    "job_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "media_asset_id",
+        "storage_key",
+        "declared_content_type"
+      ],
+      "properties": {
+        "media_asset_id": {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        "storage_key": {
+          "type": "string"
+        },
+        "declared_content_type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "available_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "correlation_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "causation_id": {
+      "anyOf": [
+        {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

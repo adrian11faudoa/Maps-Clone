@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/Place.schema.json",
+  "title": "Place",
+  "description": "Canonical business/POI/address record.",
+  "type": "object",
+  "x-owning-domain": "Places",
+  "x-authoritative-storage": "PostgreSQL/PostGIS places.place",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "name",
+    "location",
+    "categories",
+    "address",
+    "status",
+    "rating_summary",
+    "version",
+    "updated_at",
+    "deleted_at"
+  ],
+  "x-deletion-semantics": "soft-delete/tombstone, never physically purged",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "name",
+    "location",
+    "categories",
+    "status",
+    "version",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300
+    },
+    "location": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "formatted": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "locality": {
+          "type": "string"
+        }
+      }
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/PlaceStatus/values"
+    },
+    "rating_summary": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "average": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "updated_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "deleted_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "PlaceStatus",
+  "x-relationships": {
+    "has_many": [
+      "Review",
+      "Contribution",
+      "SavedPlace",
+      "PlaceAlias"
+    ],
+    "has_many_through": [
+      "MediaAsset"
+    ]
+  }
+}

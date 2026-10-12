@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/ContributionApproved.schema.json",
+  "title": "ContributionApproved",
+  "description": "Published by Contributions when a moderator/admin approves a contribution; consumed by Places to apply the canonical mutation.",
+  "type": "object",
+  "required": [
+    "contribution_id",
+    "moderation_case_id",
+    "proposed_changes"
+  ],
+  "properties": {
+    "contribution_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "moderation_case_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "place_id": {
+      "anyOf": [
+        {
+          "$ref": "common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "proposed_changes": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

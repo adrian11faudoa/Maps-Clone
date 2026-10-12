@@ -1,0 +1,1223 @@
+openapi: 3.1.0
+info:
+  title: Mapping & Navigation Platform — Core API
+  version: 1.0.0
+  description: >
+    Foundational REST API contract for the Google Maps-style mapping and
+    navigation platform. This is Architecture Volume 1's machine-readable
+    contract; it defines the cross-cutting-critical resource families in
+    full (auth, places, search, geocoding, routes, navigation sessions,
+    saved places) and documents lower-priority families as stubs for
+    implementation prompts to complete. See
+    docs/architecture/06-api-architecture.md for the prose companion.
+servers:
+  - url: https://api.platform.example/v1
+    description: Production API edge (illustrative host)
+tags:
+  - name: auth
+  - name: users
+  - name: places
+  - name: search
+  - name: geocoding
+  - name: routes
+  - name: navigation
+  - name: saved-places
+  - name: contributions
+  - name: reviews
+  - name: media
+  - name: notifications
+  - name: reports
+  - name: admin
+  - name: tiles
+
+security:
+  - {}
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Register a new account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 10 }
+      responses:
+        '201':
+          description: Account created; tokens issued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Authenticate with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Authenticated; tokens issued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Rotate refresh token and issue a new access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        '200':
+          description: New token pair issued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokenResponse' }
+        '401':
+          description: Refresh token invalid, expired, or reuse detected (session family revoked)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Revoke the current session
+      security: [{ BearerAuth: [] }]
+      responses:
+        '204': { description: Session revoked }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /users/me:
+    get:
+      tags: [users]
+      summary: Get the authenticated user's profile
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserProfile' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    patch:
+      tags: [users]
+      summary: Update the authenticated user's profile
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserProfileUpdate' }
+      responses:
+        '200':
+          description: Updated profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserProfile' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /users/me/sessions:
+    get:
+      tags: [users]
+      summary: List active sessions/devices for the authenticated user
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Session list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/SessionSummary' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /users/me/sessions/{sessionId}:
+    parameters:
+      - $ref: '#/components/parameters/SessionId'
+    delete:
+      tags: [users]
+      summary: Revoke a specific session
+      security: [{ BearerAuth: [] }]
+      responses:
+        '204': { description: Session revoked }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /places:
+    get:
+      tags: [places]
+      summary: List/filter places (requires a geographic bound)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Near'
+        - $ref: '#/components/parameters/RadiusM'
+        - $ref: '#/components/parameters/Bbox'
+        - name: category
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Paginated place list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlacePage' }
+        '422':
+          description: Missing required geographic bound
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    post:
+      tags: [places]
+      summary: Directly create a place (administrator only)
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PlaceCreate' }
+      responses:
+        '201':
+          description: Place created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Place' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /places/{placeId}:
+    parameters:
+      - $ref: '#/components/parameters/PlaceId'
+    get:
+      tags: [places]
+      summary: Get place details
+      security: []
+      responses:
+        '200':
+          description: Place
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Place' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /places/{placeId}/reviews:
+    parameters:
+      - $ref: '#/components/parameters/PlaceId'
+    get:
+      tags: [reviews]
+      summary: List reviews for a place
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Paginated review list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReviewPage' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [reviews]
+      summary: Submit a review for a place
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReviewCreate' }
+      responses:
+        '201':
+          description: Review created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Review' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /search:
+    get:
+      tags: [search]
+      summary: Free-text place/geo search (requires a geographic bound)
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 1 }
+        - $ref: '#/components/parameters/Near'
+        - $ref: '#/components/parameters/Bbox'
+        - name: category
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Ranked search results
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResultPage' }
+        '422':
+          description: Missing required geographic bound
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '502': { $ref: '#/components/responses/DependencyUnavailable' }
+
+  /autocomplete:
+    get:
+      tags: [search]
+      summary: Low-latency prefix autocomplete
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 1 }
+        - $ref: '#/components/parameters/Near'
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 10, default: 5 }
+      responses:
+        '200':
+          description: Autocomplete suggestions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AutocompleteSuggestion' }
+        '502': { $ref: '#/components/responses/DependencyUnavailable' }
+
+  /geocode:
+    post:
+      tags: [geocoding]
+      summary: Forward geocode an address or free-text query
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query: { type: string }
+                near: { $ref: '#/components/schemas/GeoPoint' }
+      responses:
+        '200':
+          description: Ranked geocode candidates (may be empty; never a false-precision single pick)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GeocodeResultSet' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /geocode/reverse:
+    post:
+      tags: [geocoding]
+      summary: Reverse geocode a coordinate
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [location]
+              properties:
+                location: { $ref: '#/components/schemas/GeoPoint' }
+      responses:
+        '200':
+          description: Ranked reverse-geocode candidates
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GeocodeResultSet' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /routes:
+    post:
+      tags: [routes]
+      summary: Compute a route
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RouteRequestBody' }
+      responses:
+        '200':
+          description: Computed route(s)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RouteResponse' }
+        '422':
+          description: No viable route found for the given constraints (route_not_found)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '502': { $ref: '#/components/responses/RoutingEngineUnavailable' }
+
+  /routes/{routeId}:
+    parameters:
+      - name: routeId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [routes]
+      summary: Retrieve a previously computed route within its cache TTL
+      security: []
+      responses:
+        '200':
+          description: Route
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RouteResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /navigation/sessions:
+    post:
+      tags: [navigation]
+      summary: Start a navigation session
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [route_id]
+              properties:
+                route_id: { type: string }
+      responses:
+        '201':
+          description: Navigation session created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NavigationSession' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404':
+          description: Referenced route not found or expired
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /navigation/sessions/{sessionId}:
+    parameters:
+      - $ref: '#/components/parameters/NavSessionId'
+    get:
+      tags: [navigation]
+      summary: Get current navigation session state (REST fallback to the WebSocket stream)
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Session state
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NavigationSession' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /navigation/sessions/{sessionId}/location:
+    parameters:
+      - $ref: '#/components/parameters/NavSessionId'
+    post:
+      tags: [navigation]
+      summary: REST fallback for submitting a location update (WebSocket is primary)
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LocationUpdate' }
+      responses:
+        '200':
+          description: Updated session state
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NavigationSession' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409':
+          description: Session not in a state that accepts location updates
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /navigation/sessions/{sessionId}/complete:
+    parameters:
+      - $ref: '#/components/parameters/NavSessionId'
+    post:
+      tags: [navigation]
+      summary: Mark a navigation session as completed (arrival)
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Session completed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NavigationSession' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409': { $ref: '#/components/responses/NavigationSessionConflict' }
+
+  /navigation/sessions/{sessionId}/cancel:
+    parameters:
+      - $ref: '#/components/parameters/NavSessionId'
+    post:
+      tags: [navigation]
+      summary: Cancel a navigation session
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Session cancelled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NavigationSession' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409': { $ref: '#/components/responses/NavigationSessionConflict' }
+
+  /users/me/saved-places:
+    get:
+      tags: [saved-places]
+      summary: List the authenticated user's saved places
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Paginated saved-place list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/SavedPlace' }
+                  page: { $ref: '#/components/schemas/PageInfo' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    post:
+      tags: [saved-places]
+      summary: Save a place
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [place_id]
+              properties:
+                place_id: { type: string }
+                list_id: { type: string, nullable: true }
+      responses:
+        '201':
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SavedPlace' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /users/me/saved-places/{savedPlaceId}:
+    parameters:
+      - name: savedPlaceId
+        in: path
+        required: true
+        schema: { type: string }
+    delete:
+      tags: [saved-places]
+      summary: Remove a saved place
+      security: [{ BearerAuth: [] }]
+      responses:
+        '204': { description: Removed }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /contributions:
+    post:
+      tags: [contributions]
+      summary: Submit a proposed correction/addition to a place
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ContributionCreate' }
+      responses:
+        '201':
+          description: Contribution submitted (pending moderation)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Contribution' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    get:
+      tags: [contributions]
+      summary: List the authenticated user's contributions
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Paginated contribution list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Contribution' }
+                  page: { $ref: '#/components/schemas/PageInfo' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /media/uploads:
+    post:
+      tags: [media]
+      summary: Authorize a media upload and receive a pre-signed URL
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [context_type, context_id, content_type, size_bytes]
+              properties:
+                context_type: { type: string, enum: [place, review, contribution] }
+                context_id: { type: string }
+                content_type: { type: string }
+                size_bytes: { type: integer, minimum: 1 }
+      responses:
+        '201':
+          description: Upload authorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MediaUploadAuthorization' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /reports:
+    post:
+      tags: [reports]
+      summary: Submit a report against a moderatable subject
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject_type, subject_id, reason]
+              properties:
+                subject_type: { type: string, enum: [place, review, media, contribution, user] }
+                subject_id: { type: string }
+                reason: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        '201':
+          description: Report submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  status: { type: string, enum: [open] }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /users/me/notifications:
+    get:
+      tags: [notifications]
+      summary: >
+        List the authenticated user's notifications. Full request/response
+        detail beyond this summary is an implementation-prompt responsibility
+        (see docs/architecture/16-notifications-moderation-admin-architecture.md);
+        this entry establishes the endpoint's existence, auth requirement,
+        and base response shape as a binding contract stub.
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Paginated notification list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Notification' }
+                  page: { $ref: '#/components/schemas/PageInfo' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /admin/moderation/cases:
+    get:
+      tags: [admin]
+      summary: >
+        List moderation cases (moderator/admin only). Full admin-console
+        surface is a contract stub in this volume — implementation prompts
+        for Moderation & Administration extend this family per
+        docs/architecture/16-notifications-moderation-admin-architecture.md.
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [open, closed] }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Paginated moderation case list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/ModerationCase' }
+                  page: { $ref: '#/components/schemas/PageInfo' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /tiles/{z}/{x}/{y}.pbf:
+    parameters:
+      - name: z
+        in: path
+        required: true
+        schema: { type: integer, minimum: 0, maximum: 22 }
+      - name: x
+        in: path
+        required: true
+        schema: { type: integer, minimum: 0 }
+      - name: y
+        in: path
+        required: true
+        schema: { type: integer, minimum: 0 }
+    get:
+      tags: [tiles]
+      summary: Fetch a vector tile (typically served via CDN in front of this origin)
+      security: []
+      responses:
+        '200':
+          description: Mapbox Vector Tile binary
+          content:
+            application/vnd.mapbox-vector-tile: {}
+        '404':
+          description: No data for this tile coordinate
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PlaceId:
+      name: placeId
+      in: path
+      required: true
+      schema: { type: string }
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema: { type: string }
+    NavSessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema: { type: string }
+    Near:
+      name: near
+      in: query
+      description: "lng,lat bias point"
+      schema: { type: string, pattern: '^-?\d+(\.\d+)?,-?\d+(\.\d+)?$' }
+    RadiusM:
+      name: radius_m
+      in: query
+      schema: { type: number, minimum: 1, maximum: 50000 }
+    Bbox:
+      name: bbox
+      in: query
+      description: "minLng,minLat,maxLng,maxLat"
+      schema: { type: string, pattern: '^-?\d+(\.\d+)?,-?\d+(\.\d+)?,-?\d+(\.\d+)?,-?\d+(\.\d+)?$' }
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  responses:
+    Unauthenticated:
+      description: Missing or invalid credentials
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Authenticated but not authorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ValidationError:
+      description: Request failed validation
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema: { type: integer }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    DependencyUnavailable:
+      description: A required upstream dependency failed or timed out
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RoutingEngineUnavailable:
+      description: The routing engine is unavailable
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NavigationSessionConflict:
+      description: Action invalid for the current navigation session state
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    GeoPoint:
+      type: object
+      required: [type, coordinates]
+      properties:
+        type: { type: string, enum: [Point] }
+        coordinates:
+          type: array
+          items: { type: number }
+          minItems: 2
+          maxItems: 2
+          description: "[lng, lat], see docs/architecture/05-identifier-time-coordinate-model.md"
+
+    PageInfo:
+      type: object
+      properties:
+        next_cursor: { type: string, nullable: true }
+        has_more: { type: boolean }
+        limit: { type: integer }
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, status, correlation_id, retryable]
+          properties:
+            code:
+              type: string
+              enum:
+                - unauthenticated
+                - invalid_token
+                - session_revoked
+                - forbidden
+                - resource_owner_mismatch
+                - validation_failed
+                - geospatial_bounds_required
+                - not_found
+                - conflict
+                - idempotency_key_conflict
+                - navigation_session_conflict
+                - rate_limited
+                - dependency_unavailable
+                - routing_engine_unavailable
+                - service_unavailable
+                - timeout
+                - route_not_found
+                - malformed_request
+                - internal_error
+            message: { type: string }
+            status: { type: integer }
+            correlation_id: { type: string }
+            retryable: { type: boolean }
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string }
+                  issue:
+                    type: string
+                    enum: [required, invalid_format, invalid_type, out_of_range, too_long, too_short, not_allowed_value]
+            doc_url: { type: string, format: uri }
+
+    AuthTokenResponse:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        expires_in: { type: integer, description: Access token TTL in seconds }
+        user: { $ref: '#/components/schemas/UserProfile' }
+
+    UserProfile:
+      type: object
+      properties:
+        id: { type: string }
+        display_name: { type: string }
+        locale: { type: string }
+        unit_preference: { type: string, enum: [metric, imperial] }
+        created_at: { type: string, format: date-time }
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        display_name: { type: string }
+        locale: { type: string }
+        unit_preference: { type: string, enum: [metric, imperial] }
+
+    SessionSummary:
+      type: object
+      properties:
+        id: { type: string }
+        device_name: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        last_used_at: { type: string, format: date-time }
+        current: { type: boolean }
+
+    Category:
+      type: object
+      properties:
+        slug: { type: string }
+        label: { type: string }
+
+    Place:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        categories:
+          type: array
+          items: { type: string }
+        location: { $ref: '#/components/schemas/GeoPoint' }
+        address:
+          type: object
+          properties:
+            formatted: { type: string }
+            country: { type: string }
+            locality: { type: string }
+        status: { type: string, enum: [active, moderated_hidden] }
+        rating_summary:
+          type: object
+          nullable: true
+          properties:
+            average: { type: number }
+            count: { type: integer }
+        version: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    PlaceCreate:
+      type: object
+      required: [name, location, categories]
+      properties:
+        name: { type: string, minLength: 1 }
+        location: { $ref: '#/components/schemas/GeoPoint' }
+        categories:
+          type: array
+          items: { type: string }
+          minItems: 1
+        address:
+          type: object
+          properties:
+            formatted: { type: string }
+            country: { type: string }
+            locality: { type: string }
+
+    PlacePage:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Place' }
+        page: { $ref: '#/components/schemas/PageInfo' }
+
+    Review:
+      type: object
+      properties:
+        id: { type: string }
+        place_id: { type: string }
+        user_id: { type: string }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        text: { type: string, nullable: true }
+        status: { type: string, enum: [visible, hidden] }
+        created_at: { type: string, format: date-time }
+
+    ReviewCreate:
+      type: object
+      required: [rating]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        text: { type: string, maxLength: 5000, nullable: true }
+
+    ReviewPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Review' }
+        page: { $ref: '#/components/schemas/PageInfo' }
+
+    SearchResultPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              type: { type: string, enum: [place, administrative_region, landmark] }
+              name: { type: string }
+              location: { $ref: '#/components/schemas/GeoPoint' }
+              categories:
+                type: array
+                items: { type: string }
+              relevance_score: { type: number }
+        page: { $ref: '#/components/schemas/PageInfo' }
+
+    AutocompleteSuggestion:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string, enum: [place, administrative_region, landmark] }
+        primary_category: { type: string, nullable: true }
+
+    GeocodeResultSet:
+      type: object
+      properties:
+        candidates:
+          type: array
+          items:
+            type: object
+            properties:
+              location: { $ref: '#/components/schemas/GeoPoint' }
+              formatted_address: { type: string }
+              confidence: { type: number, minimum: 0, maximum: 1 }
+              match_level: { type: string, enum: [exact_address, street, locality, region, approximate] }
+              source: { type: string }
+
+    RouteRequestBody:
+      type: object
+      required: [origin, destination, mode]
+      properties:
+        origin: { $ref: '#/components/schemas/GeoPoint' }
+        destination: { $ref: '#/components/schemas/GeoPoint' }
+        waypoints:
+          type: array
+          items: { $ref: '#/components/schemas/GeoPoint' }
+        mode: { type: string, enum: [driving, walking, cycling, transit] }
+        alternatives: { type: boolean, default: false }
+        avoid:
+          type: array
+          items: { type: string, enum: [tolls, highways, ferries] }
+        depart_at: { type: string, format: date-time, nullable: true }
+        traffic_aware: { type: boolean, default: true }
+
+    RouteResponse:
+      type: object
+      properties:
+        id: { type: string }
+        routes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              mode: { type: string }
+              distance_m: { type: number }
+              duration_s: { type: number }
+              duration_in_traffic_s: { type: number, nullable: true }
+              geometry:
+                type: object
+                properties:
+                  type: { type: string, enum: [LineString] }
+                  coordinates:
+                    type: array
+                    items:
+                      type: array
+                      items: { type: number }
+              legs:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    distance_m: { type: number }
+                    duration_s: { type: number }
+                    steps:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          instruction: { type: string }
+                          distance_m: { type: number }
+                          duration_s: { type: number }
+                          maneuver: { type: string }
+              warnings:
+                type: array
+                items: { type: string }
+        traffic_assumptions:
+          type: object
+          properties:
+            used_live_traffic: { type: boolean }
+            snapshot_time: { type: string, format: date-time, nullable: true }
+
+    NavigationSession:
+      type: object
+      properties:
+        id: { type: string }
+        user_id: { type: string }
+        route_id: { type: string }
+        mode: { type: string }
+        status: { type: string, enum: [active, paused, rerouting, completed, cancelled] }
+        current_step_index: { type: integer }
+        current_leg_index: { type: integer }
+        off_route: { type: boolean }
+        eta: { type: string, format: date-time, nullable: true }
+        started_at: { type: string, format: date-time }
+        ended_at: { type: string, format: date-time, nullable: true }
+
+    LocationUpdate:
+      type: object
+      required: [location, client_observed_at]
+      properties:
+        location: { $ref: '#/components/schemas/GeoPoint' }
+        heading: { type: number, minimum: 0, maximum: 360, nullable: true }
+        speed_mps: { type: number, minimum: 0, nullable: true }
+        accuracy_m: { type: number, minimum: 0, nullable: true }
+        client_observed_at: { type: string, format: date-time }
+
+    SavedPlace:
+      type: object
+      properties:
+        id: { type: string }
+        place_id: { type: string }
+        list_id: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    Contribution:
+      type: object
+      properties:
+        id: { type: string }
+        place_id: { type: string, nullable: true }
+        user_id: { type: string }
+        type: { type: string, enum: [create, update, correction] }
+        proposed_changes: { type: object }
+        status: { type: string, enum: [pending, approved, rejected] }
+        created_at: { type: string, format: date-time }
+
+    ContributionCreate:
+      type: object
+      required: [type, proposed_changes]
+      properties:
+        place_id: { type: string, nullable: true }
+        type: { type: string, enum: [create, update, correction] }
+        proposed_changes: { type: object }
+
+    MediaUploadAuthorization:
+      type: object
+      properties:
+        media_asset_id: { type: string }
+        upload_url: { type: string, format: uri }
+        upload_method: { type: string, enum: [PUT] }
+        expires_at: { type: string, format: date-time }
+
+    Notification:
+      type: object
+      properties:
+        id: { type: string }
+        category: { type: string }
+        title: { type: string }
+        body: { type: string }
+        read_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    ModerationCase:
+      type: object
+      properties:
+        id: { type: string }
+        subject_type: { type: string, enum: [place, review, media, contribution, user] }
+        subject_id: { type: string }
+        status: { type: string, enum: [open, closed] }
+        created_at: { type: string, format: date-time }

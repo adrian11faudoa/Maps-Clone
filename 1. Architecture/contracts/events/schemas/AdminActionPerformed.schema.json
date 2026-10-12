@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/AdminActionPerformed.schema.json",
+  "title": "AdminActionPerformed",
+  "description": "Published by Moderation & Administration when an administrator performs a privileged action.",
+  "type": "object",
+  "required": [
+    "admin_action_id",
+    "actor_user_id",
+    "action_type",
+    "target_type",
+    "target_id"
+  ],
+  "properties": {
+    "admin_action_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "actor_user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "action_type": {
+      "type": "string"
+    },
+    "target_type": {
+      "type": "string"
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

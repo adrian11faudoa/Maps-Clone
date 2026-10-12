@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/PlaceModerated.schema.json",
+  "title": "PlaceModerated",
+  "description": "Published by Places when a moderation decision changes a place's visibility status.",
+  "type": "object",
+  "required": [
+    "place_id",
+    "new_status",
+    "moderation_case_id"
+  ],
+  "properties": {
+    "place_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "new_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "moderated_hidden"
+      ]
+    },
+    "moderation_case_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    }
+  },
+  "additionalProperties": false
+}

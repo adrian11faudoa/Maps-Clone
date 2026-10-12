@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/Route.schema.json",
+  "title": "Route",
+  "description": "One computed route belonging to a RouteRequest.",
+  "type": "object",
+  "x-owning-domain": "Routing",
+  "x-authoritative-storage": "Redis (hot cache) + PostgreSQL routing schema (sampled audit)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id",
+    "route_request_id",
+    "mode",
+    "distance_m",
+    "duration_s",
+    "geometry",
+    "created_at"
+  ],
+  "x-mutable-fields": [],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "route_request_id",
+    "mode",
+    "distance_m",
+    "duration_s",
+    "geometry",
+    "used_live_traffic",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "route_request_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "mode": {
+      "$ref": "../enums/registry.json#/enums/TravelMode/values"
+    },
+    "distance_m": {
+      "type": "number",
+      "minimum": 0
+    },
+    "duration_s": {
+      "type": "number",
+      "minimum": 0
+    },
+    "duration_in_traffic_s": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "geometry": {
+      "type": "object",
+      "description": "GeoJSON LineString"
+    },
+    "used_live_traffic": {
+      "type": "boolean"
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "RouteRequest"
+    ],
+    "has_many": [
+      "RouteAlternative",
+      "RouteLeg"
+    ]
+  }
+}

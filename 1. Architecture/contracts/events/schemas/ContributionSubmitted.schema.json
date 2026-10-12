@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/ContributionSubmitted.schema.json",
+  "title": "ContributionSubmitted",
+  "description": "Published by Contributions when a user submits a proposed place change.",
+  "type": "object",
+  "required": [
+    "contribution_id",
+    "user_id",
+    "type"
+  ],
+  "properties": {
+    "contribution_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "place_id": {
+      "anyOf": [
+        {
+          "$ref": "common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "correction"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

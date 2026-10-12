@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/NavigationSession.schema.json",
+  "title": "NavigationSession",
+  "description": "Stateful turn-by-turn navigation session, server-authoritative.",
+  "type": "object",
+  "x-owning-domain": "Navigation",
+  "x-authoritative-storage": "PostgreSQL navigation.navigation_session + Redis live state",
+  "x-privacy-classification": "active_navigation_data",
+  "x-immutable-fields": [
+    "id",
+    "user_id",
+    "route_id",
+    "mode",
+    "started_at",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "status",
+    "current_leg_index",
+    "current_step_index",
+    "off_route",
+    "eta",
+    "version",
+    "ended_at",
+    "updated_at"
+  ],
+  "x-deletion-semantics": "hard-delete/archive shortly after session end per retention window",
+  "x-authorization": "Owner-only. No other user or unauthorized service may read another user's session (docs/architecture/17-security-privacy-architecture.md).",
+  "required": [
+    "id",
+    "user_id",
+    "route_id",
+    "mode",
+    "status",
+    "current_leg_index",
+    "current_step_index",
+    "off_route",
+    "version",
+    "started_at",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "route_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "mode": {
+      "$ref": "../enums/registry.json#/enums/TravelMode/values"
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/NavigationSessionStatus/values"
+    },
+    "current_leg_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "current_step_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "off_route": {
+      "type": "boolean"
+    },
+    "eta": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "started_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "ended_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "updated_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "NavigationSessionStatus",
+  "x-relationships": {
+    "belongs_to": [
+      "User",
+      "Route"
+    ],
+    "has_many": [
+      "NavigationState",
+      "LocationEvent"
+    ]
+  }
+}

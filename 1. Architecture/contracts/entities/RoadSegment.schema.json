@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/RoadSegment.schema.json",
+  "title": "RoadSegment",
+  "description": "An individual, routable/traffic-trackable segment of a Road.",
+  "type": "object",
+  "x-owning-domain": "Geographic/Address Data",
+  "x-authoritative-storage": "PostgreSQL/PostGIS geodata.road_segment",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id",
+    "map_data_version_id",
+    "geometry",
+    "source",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "road_class",
+    "road_ref",
+    "external_ids"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "map_data_version_id",
+    "road_class",
+    "geometry",
+    "source",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "map_data_version_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "road_class": {
+      "type": "string"
+    },
+    "road_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "geometry": {
+      "type": "object",
+      "description": "GeoJSON LineString"
+    },
+    "external_ids": {
+      "type": "object"
+    },
+    "source": {
+      "type": "string"
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "Road",
+      "MapDatasetVersion"
+    ],
+    "has_many": [
+      "TrafficSegmentState"
+    ]
+  }
+}

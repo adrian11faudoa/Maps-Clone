@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/IncidentReported.schema.json",
+  "title": "IncidentReported",
+  "description": "Published by Traffic when a new incident (accident, closure, hazard) is recorded.",
+  "type": "object",
+  "required": [
+    "incident_id",
+    "type",
+    "location",
+    "source"
+  ],
+  "properties": {
+    "incident_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "accident",
+        "closure",
+        "hazard",
+        "construction"
+      ]
+    },
+    "location": {
+      "$ref": "common-defs.schema.json#/$defs/geoPoint"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "external_provider",
+        "user_report"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

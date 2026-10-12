@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/MediaAsset.schema.json",
+  "title": "MediaAsset",
+  "description": "An uploaded media file (covers the PlacePhoto use case and any other media context: place, review, contribution).",
+  "type": "object",
+  "x-owning-domain": "Media",
+  "x-authoritative-storage": "PostgreSQL media.media_asset (metadata) + object storage (binary)",
+  "x-privacy-classification": "media",
+  "x-immutable-fields": [
+    "id",
+    "uploader_user_id",
+    "context_type",
+    "context_id",
+    "content_type",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "status",
+    "size_bytes",
+    "checksum",
+    "processed_at",
+    "removed_at"
+  ],
+  "x-deletion-semantics": "hard-delete of binary on removal; metadata tombstoned",
+  "x-authorization": "Uploader can delete own; moderator/admin can remove any.",
+  "required": [
+    "id",
+    "uploader_user_id",
+    "context_type",
+    "context_id",
+    "status",
+    "content_type",
+    "size_bytes",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "uploader_user_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "context_type": {
+      "type": "string",
+      "enum": [
+        "place",
+        "review",
+        "contribution"
+      ]
+    },
+    "context_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/MediaStatus/values"
+    },
+    "content_type": {
+      "type": "string"
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "checksum": {
+      "type": "string"
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "processed_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "removed_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "MediaStatus",
+  "x-relationships": {
+    "belongs_to": [
+      "User"
+    ],
+    "has_many": [
+      "MediaDerivative"
+    ]
+  }
+}

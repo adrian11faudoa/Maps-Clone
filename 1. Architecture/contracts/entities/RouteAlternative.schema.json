@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/RouteAlternative.schema.json",
+  "title": "RouteAlternative",
+  "description": "Marks a Route as one of possibly several alternatives for the same RouteRequest, with its rank/selection metadata.",
+  "type": "object",
+  "x-owning-domain": "Routing",
+  "x-authoritative-storage": "Same store as Route (a Route with alternative_rank > 0 is an alternative to alternative_rank = 0)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "route_id",
+    "route_request_id",
+    "alternative_rank"
+  ],
+  "x-mutable-fields": [],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "route_id",
+    "route_request_id",
+    "alternative_rank"
+  ],
+  "properties": {
+    "route_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "route_request_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "alternative_rank": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "Route",
+      "RouteRequest"
+    ]
+  }
+}

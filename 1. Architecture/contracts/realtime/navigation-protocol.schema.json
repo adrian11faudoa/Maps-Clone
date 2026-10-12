@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/realtime/navigation-protocol.schema.json",
+  "title": "NavigationRealtimeProtocol",
+  "description": "Message schemas for the WebSocket navigation stream at wss://.../v1/navigation/sessions/{sessionId}/stream. See docs/architecture/23-realtime-navigation-protocol.md for the prose companion.",
+  "$defs": {
+    "ulid": { "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid" },
+    "geoPoint": { "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint" },
+    "timestamp": { "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp" },
+
+    "ClientLocationUpdate": {
+      "type": "object",
+      "description": "Client -> server. One location observation.",
+      "required": ["type", "sequence", "location", "client_observed_at"],
+      "properties": {
+        "type": { "const": "location_update" },
+        "sequence": { "type": "integer", "minimum": 0, "description": "Monotonic per-connection sequence number, client-assigned." },
+        "location": { "$ref": "#/$defs/geoPoint" },
+        "heading": { "anyOf": [{ "type": "number", "minimum": 0, "maximum": 360 }, { "type": "null" }] },
+        "speed_mps": { "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }] },
+        "accuracy_m": { "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }] },
+        "client_observed_at": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+
+    "ClientHeartbeat": {
+      "type": "object",
+      "description": "Client -> server. Keepalive when no location update is otherwise due.",
+      "required": ["type", "sequence"],
+      "properties": {
+        "type": { "const": "heartbeat" },
+        "sequence": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+
+    "ClientMessage": {
+      "oneOf": [
+        { "$ref": "#/$defs/ClientLocationUpdate" },
+        { "$ref": "#/$defs/ClientHeartbeat" }
+      ]
+    },
+
+    "ServerStateUpdate": {
+      "type": "object",
+      "description": "Server -> client. Authoritative navigation state, sent after processing a location_update or on a server-driven change (e.g., traffic-triggered ETA recompute).",
+      "required": ["type", "server_sequence", "current_leg_index", "current_step_index", "off_route", "server_timestamp"],
+      "properties": {
+        "type": { "const": "state_update" },
+        "server_sequence": { "type": "integer", "minimum": 0, "description": "Monotonic per-session sequence assigned by the server; used by clients to discard out-of-order deliveries." },
+        "in_response_to_sequence": { "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }], "description": "The client sequence this update was computed from, if applicable." },
+        "current_leg_index": { "type": "integer", "minimum": 0 },
+        "current_step_index": { "type": "integer", "minimum": 0 },
+        "next_maneuver": {
+          "anyOf": [
+            { "type": "object", "properties": {
+              "instruction": { "type": "string" },
+              "distance_m": { "type": "number", "minimum": 0 },
+              "maneuver_type": { "type": "string" }
+            }},
+            { "type": "null" }
+          ]
+        },
+        "map_matched_location": { "anyOf": [{ "$ref": "#/$defs/geoPoint" }, { "type": "null" }] },
+        "eta": { "anyOf": [{ "$ref": "#/$defs/timestamp" }, { "type": "null" }] },
+        "off_route": { "type": "boolean" },
+        "rerouted": { "type": "boolean", "default": false },
+        "new_route_id": { "anyOf": [{ "$ref": "#/$defs/ulid" }, { "type": "null" }] },
+        "server_timestamp": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+
+    "ServerHeartbeatAck": {
+      "type": "object",
+      "required": ["type", "in_response_to_sequence", "server_timestamp"],
+      "properties": {
+        "type": { "const": "heartbeat_ack" },
+        "in_response_to_sequence": { "type": "integer", "minimum": 0 },
+        "server_timestamp": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+
+    "ServerSessionClosed": {
+      "type": "object",
+      "description": "Server -> client. Sent immediately before the server closes the connection.",
+      "required": ["type", "reason"],
+      "properties": {
+        "type": { "const": "session_closed" },
+        "reason": {
+          "type": "string",
+          "enum": ["completed", "cancelled", "expired", "session_revoked", "server_error", "replaced_by_new_connection"]
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "ServerError": {
+      "type": "object",
+      "description": "Server -> client. A non-fatal protocol-level error (malformed message, rejected sequence, etc.) — does not close the connection unless paired with a subsequent session_closed.",
+      "required": ["type", "code", "message"],
+      "properties": {
+        "type": { "const": "error" },
+        "code": {
+          "type": "string",
+          "enum": ["malformed_message", "sequence_replay", "rate_limited", "unauthorized_channel"]
+        },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+
+    "ServerMessage": {
+      "oneOf": [
+        { "$ref": "#/$defs/ServerStateUpdate" },
+        { "$ref": "#/$defs/ServerHeartbeatAck" },
+        { "$ref": "#/$defs/ServerSessionClosed" },
+        { "$ref": "#/$defs/ServerError" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/PlaceUpdated.schema.json",
+  "title": "PlaceUpdated",
+  "description": "Published by Places when a place is updated.",
+  "type": "object",
+  "required": [
+    "place_id",
+    "changed_fields",
+    "version"
+  ],
+  "properties": {
+    "place_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "changed_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "additionalProperties": false
+}

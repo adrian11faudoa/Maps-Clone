@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/Device.schema.json",
+  "title": "Device",
+  "description": "A registered client device/browser used to establish sessions.",
+  "type": "object",
+  "x-owning-domain": "Identity",
+  "x-authoritative-storage": "PostgreSQL identity.device",
+  "x-privacy-classification": "account_information",
+  "x-immutable-fields": [
+    "id",
+    "user_id",
+    "platform",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "display_name"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "user_id",
+    "platform",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "web",
+        "ios",
+        "android"
+      ]
+    },
+    "display_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "User"
+    ]
+  }
+}

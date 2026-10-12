@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/Session.schema.json",
+  "title": "Session",
+  "description": "An issued refresh-token session tied to a user and optionally a device.",
+  "type": "object",
+  "x-owning-domain": "Identity",
+  "x-authoritative-storage": "PostgreSQL identity.session + Redis denylist mirror",
+  "x-privacy-classification": "account_information",
+  "x-immutable-fields": [
+    "id",
+    "user_id",
+    "device_id",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "status",
+    "last_used_at",
+    "revoked_at"
+  ],
+  "x-deletion-semantics": "hard-delete on revocation/expiry sweep",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "user_id",
+    "roles",
+    "status",
+    "created_at",
+    "last_used_at",
+    "expires_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "device_id": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "user",
+          "contributor",
+          "moderator",
+          "support",
+          "admin",
+          "service"
+        ]
+      }
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/SessionStatus/values"
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "last_used_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "revoked_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "SessionStatus",
+  "x-relationships": {
+    "belongs_to": [
+      "User",
+      "Device"
+    ]
+  }
+}

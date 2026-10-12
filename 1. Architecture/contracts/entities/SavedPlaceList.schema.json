@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/SavedPlaceList.schema.json",
+  "title": "SavedPlaceList",
+  "description": "A user-defined named collection of SavedPlace entries.",
+  "type": "object",
+  "x-owning-domain": "Saved Places",
+  "x-authoritative-storage": "PostgreSQL places.saved_place_list",
+  "x-privacy-classification": "saved_places",
+  "x-immutable-fields": [
+    "id",
+    "user_id",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "name"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "Strictly owner-only, except an explicit user-initiated share action (out of scope for this volume).",
+  "required": [
+    "id",
+    "user_id",
+    "name",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "User"
+    ],
+    "has_many": [
+      "SavedPlace"
+    ]
+  }
+}

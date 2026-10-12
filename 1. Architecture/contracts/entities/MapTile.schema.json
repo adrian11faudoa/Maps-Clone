@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/MapTile.schema.json",
+  "title": "MapTile",
+  "description": "A single published vector tile artifact; TileVersion is the version-lineage grouping of MapTiles. Referred to as TileSet/TileVersion in Volume 1 docs.",
+  "type": "object",
+  "x-owning-domain": "Map Tiles",
+  "x-authoritative-storage": "Object storage (binary) + PostgreSQL tiles schema (metadata)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "tile_version_id",
+    "z",
+    "x",
+    "y",
+    "storage_key",
+    "created_at"
+  ],
+  "x-mutable-fields": [],
+  "x-deletion-semantics": "garbage-collected after the rollback retention window for its TileVersion elapses",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "tile_version_id",
+    "z",
+    "x",
+    "y",
+    "storage_key",
+    "created_at"
+  ],
+  "properties": {
+    "tile_version_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "z": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 22
+    },
+    "x": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "y": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "storage_key": {
+      "type": "string"
+    },
+    "content_encoding": {
+      "type": "string",
+      "enum": [
+        "gzip",
+        "identity"
+      ]
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/SearchDocument.schema.json",
+  "title": "SearchDocument",
+  "description": "Derived, rebuildable OpenSearch projection of a Place or GeographicFeature.",
+  "type": "object",
+  "x-owning-domain": "Search (derived from Places / Geographic Address Data)",
+  "x-authoritative-storage": "OpenSearch index",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id",
+    "type"
+  ],
+  "x-mutable-fields": [
+    "name",
+    "name_i18n",
+    "aliases",
+    "categories",
+    "location",
+    "popularity_signal",
+    "quality_signal",
+    "status",
+    "source_version",
+    "indexed_at"
+  ],
+  "x-deletion-semantics": "removed/reindexed on source PlaceDeleted or full rebuild",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "type",
+    "name",
+    "location",
+    "status",
+    "indexed_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "place",
+        "administrative_region",
+        "landmark"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "name_i18n": {
+      "type": "object"
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "location": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+    },
+    "administrative_path": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "popularity_signal": {
+      "type": "number"
+    },
+    "quality_signal": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "moderated_hidden"
+      ]
+    },
+    "source_version": {
+      "type": "string"
+    },
+    "indexed_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false
+}

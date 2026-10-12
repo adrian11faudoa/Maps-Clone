@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/MediaRemoved.schema.json",
+  "title": "MediaRemoved",
+  "description": "Published by Media when an asset is removed (user- or moderation-initiated).",
+  "type": "object",
+  "required": [
+    "media_asset_id",
+    "reason"
+  ],
+  "properties": {
+    "media_asset_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "user_removed",
+        "moderation_removed"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

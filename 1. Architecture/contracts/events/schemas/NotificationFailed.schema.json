@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/NotificationFailed.schema.json",
+  "title": "NotificationFailed",
+  "description": "Published by Notifications when a delivery attempt exhausts retries.",
+  "type": "object",
+  "required": [
+    "notification_id",
+    "user_id",
+    "channel",
+    "reason"
+  ],
+  "properties": {
+    "notification_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "push",
+        "email",
+        "in_app"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

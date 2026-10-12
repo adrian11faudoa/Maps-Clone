@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/IdempotencyRecord.schema.json",
+  "title": "IdempotencyRecord",
+  "description": "A stored mapping from a client-supplied Idempotency-Key to a previously-produced response, per docs/architecture/06-api-architecture.md.",
+  "type": "object",
+  "x-owning-domain": "API edge / per-service",
+  "x-authoritative-storage": "Redis idempotency:{principal}:{endpoint}:{key}",
+  "x-privacy-classification": "operational_data",
+  "x-immutable-fields": [
+    "principal_id",
+    "endpoint",
+    "idempotency_key",
+    "request_fingerprint",
+    "response_status",
+    "response_body",
+    "created_at"
+  ],
+  "x-mutable-fields": [],
+  "x-deletion-semantics": "natural TTL expiry (24 hours)",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "principal_id",
+    "endpoint",
+    "idempotency_key",
+    "request_fingerprint",
+    "response_status",
+    "created_at",
+    "expires_at"
+  ],
+  "properties": {
+    "principal_id": {
+      "type": "string"
+    },
+    "endpoint": {
+      "type": "string"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "request_fingerprint": {
+      "type": "string",
+      "description": "Hash of the normalized request body, used to detect a reused key with a different body."
+    },
+    "response_status": {
+      "type": "integer"
+    },
+    "response_body": {
+      "type": "object"
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false
+}

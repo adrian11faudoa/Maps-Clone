@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/MediaUploaded.schema.json",
+  "title": "MediaUploaded",
+  "description": "Published by Media when an upload completes and passes/fails validation.",
+  "type": "object",
+  "required": [
+    "media_asset_id",
+    "uploader_user_id",
+    "context_type",
+    "context_id",
+    "status"
+  ],
+  "properties": {
+    "media_asset_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "uploader_user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "context_type": {
+      "type": "string",
+      "enum": [
+        "place",
+        "review",
+        "contribution"
+      ]
+    },
+    "context_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "rejected"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

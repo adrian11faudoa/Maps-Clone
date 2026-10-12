@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/UserRegistered.schema.json",
+  "title": "UserRegistered",
+  "description": "Published by Identity when a new account is created.",
+  "type": "object",
+  "required": [
+    "user_id",
+    "email"
+  ],
+  "properties": {
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    }
+  },
+  "additionalProperties": false
+}

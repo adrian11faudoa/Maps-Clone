@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/queues/retention-cleanup.schema.json",
+  "title": "retention-cleanup",
+  "description": "Purges expired rows per a documented retention window (navigation.location_update, raw LocationEvent buffer, expired Notification rows, orphaned media uploads).",
+  "type": "object",
+  "x-max-attempts": 3,
+  "x-timeout-ms": 300000,
+  "x-concurrency": "Low; typically one scheduled run per target per interval.",
+  "x-deduplication": "Deletion is naturally idempotent; re-running with the same cutoff_at is a no-op on already-purged rows.",
+  "required": [
+    "job_id",
+    "job_type",
+    "job_version",
+    "payload",
+    "created_at",
+    "available_at",
+    "attempt",
+    "correlation_id"
+  ],
+  "properties": {
+    "job_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "job_type": {
+      "const": "retention-cleanup"
+    },
+    "job_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "target",
+        "cutoff_at"
+      ],
+      "properties": {
+        "target": {
+          "type": "string",
+          "enum": [
+            "location_update",
+            "location_event",
+            "notification",
+            "orphaned_media_upload"
+          ]
+        },
+        "cutoff_at": {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "available_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "correlation_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "causation_id": {
+      "anyOf": [
+        {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

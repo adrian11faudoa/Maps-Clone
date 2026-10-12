@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/Intersection.schema.json",
+  "title": "Intersection",
+  "description": "A routing-graph node where RoadSegments meet; used by the routing engine build, not directly API-exposed.",
+  "type": "object",
+  "x-owning-domain": "Geographic/Address Data (via geodata-pipeline routing graph build)",
+  "x-authoritative-storage": "Routing-engine-native graph artifact (derived, not a Postgres table)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id",
+    "location"
+  ],
+  "x-mutable-fields": [
+    "connected_segment_ids"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "location"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "location": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+    },
+    "connected_segment_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+      }
+    }
+  },
+  "additionalProperties": false
+}

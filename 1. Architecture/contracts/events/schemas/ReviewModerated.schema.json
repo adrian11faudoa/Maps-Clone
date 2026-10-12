@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/ReviewModerated.schema.json",
+  "title": "ReviewModerated",
+  "description": "Published by Reviews & Ratings when a moderation decision changes a review's visibility.",
+  "type": "object",
+  "required": [
+    "review_id",
+    "place_id",
+    "new_status",
+    "moderation_case_id"
+  ],
+  "properties": {
+    "review_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "place_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "new_status": {
+      "type": "string",
+      "enum": [
+        "visible",
+        "hidden"
+      ]
+    },
+    "moderation_case_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    }
+  },
+  "additionalProperties": false
+}

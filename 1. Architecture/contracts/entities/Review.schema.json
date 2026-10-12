@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/Review.schema.json",
+  "title": "Review",
+  "description": "A user's review and rating of a Place.",
+  "type": "object",
+  "x-owning-domain": "Reviews & Ratings",
+  "x-authoritative-storage": "PostgreSQL places.review",
+  "x-privacy-classification": "reviews_contributions",
+  "x-immutable-fields": [
+    "id",
+    "place_id",
+    "user_id",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "rating",
+    "text",
+    "status",
+    "updated_at",
+    "deleted_at"
+  ],
+  "x-deletion-semantics": "owner soft-delete (tombstone), moderation hides rather than deletes",
+  "x-authorization": "Owner-only edit/delete of own review; moderator/admin can hide any.",
+  "required": [
+    "id",
+    "place_id",
+    "user_id",
+    "rating",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "place_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "rating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "text": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 5000
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/ReviewStatus/values"
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "updated_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "deleted_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "ReviewStatus",
+  "x-relationships": {
+    "belongs_to": [
+      "Place",
+      "User"
+    ]
+  }
+}

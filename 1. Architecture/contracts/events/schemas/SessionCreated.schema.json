@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/SessionCreated.schema.json",
+  "title": "SessionCreated",
+  "description": "Published by Identity when a session is created.",
+  "type": "object",
+  "required": [
+    "session_id",
+    "user_id",
+    "device_id"
+  ],
+  "properties": {
+    "session_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "device_id": {
+      "anyOf": [
+        {
+          "$ref": "common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

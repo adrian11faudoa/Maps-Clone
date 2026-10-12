@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/queues/notification-delivery.schema.json",
+  "title": "notification-delivery",
+  "description": "Delivers one notification to one channel for one user.",
+  "type": "object",
+  "x-max-attempts": 5,
+  "x-timeout-ms": 15000,
+  "x-concurrency": "High for in_app; provider-quota-bound for push/email; urgent priority uses a dedicated high-priority lane.",
+  "x-deduplication": "Provider-side idempotency key passed through where the provider supports it (e.g., APNs collapse-id).",
+  "required": [
+    "job_id",
+    "job_type",
+    "job_version",
+    "payload",
+    "created_at",
+    "available_at",
+    "attempt",
+    "correlation_id"
+  ],
+  "properties": {
+    "job_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "job_type": {
+      "const": "notification-delivery"
+    },
+    "job_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "notification_id",
+        "user_id",
+        "channel",
+        "template_id"
+      ],
+      "properties": {
+        "notification_id": {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        "user_id": {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "push",
+            "email",
+            "in_app"
+          ]
+        },
+        "template_id": {
+          "type": "string"
+        },
+        "template_data": {
+          "type": "object"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "low",
+            "normal",
+            "high",
+            "urgent"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "available_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "correlation_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "causation_id": {
+      "anyOf": [
+        {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

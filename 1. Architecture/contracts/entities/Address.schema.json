@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/Address.schema.json",
+  "title": "Address",
+  "description": "Normalized address components associated with a Place or a standalone geocoding candidate.",
+  "type": "object",
+  "x-owning-domain": "Places / Geographic Address Data",
+  "x-authoritative-storage": "PostgreSQL places.place (embedded) or geodata for base-map address ranges",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [],
+  "x-mutable-fields": [
+    "formatted",
+    "country",
+    "region",
+    "locality",
+    "postal_code",
+    "street",
+    "house_number"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "formatted"
+  ],
+  "properties": {
+    "formatted": {
+      "type": "string"
+    },
+    "country": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "region": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "locality": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "postal_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "street": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "house_number": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

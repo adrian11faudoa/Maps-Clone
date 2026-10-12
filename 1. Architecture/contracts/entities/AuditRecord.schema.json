@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/AuditRecord.schema.json",
+  "title": "AuditRecord",
+  "description": "An append-only record of a moderation or administrative action. Never updated or deleted through any application path.",
+  "type": "object",
+  "x-owning-domain": "Moderation & Administration",
+  "x-authoritative-storage": "PostgreSQL moderation.audit_record (no UPDATE/DELETE grants for any application role)",
+  "x-privacy-classification": "administrative_data",
+  "x-immutable-fields": [
+    "id",
+    "actor_user_id",
+    "actor_type",
+    "action",
+    "subject_type",
+    "subject_id",
+    "before_state",
+    "after_state",
+    "correlation_id",
+    "created_at"
+  ],
+  "x-mutable-fields": [],
+  "x-deletion-semantics": "never deleted through any application path; only an out-of-band compliance procedure could remove it",
+  "x-authorization": "admin only for read; no role may write outside the moderation/admin action pathway itself.",
+  "required": [
+    "id",
+    "actor_type",
+    "action",
+    "subject_type",
+    "subject_id",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "actor_user_id": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "actor_type": {
+      "type": "string",
+      "enum": [
+        "user",
+        "service",
+        "system"
+      ]
+    },
+    "action": {
+      "type": "string"
+    },
+    "subject_type": {
+      "type": "string"
+    },
+    "subject_id": {
+      "type": "string"
+    },
+    "before_state": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "after_state": {
+      "anyOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "correlation_id": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false
+}

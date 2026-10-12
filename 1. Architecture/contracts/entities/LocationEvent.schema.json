@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/LocationEvent.schema.json",
+  "title": "LocationEvent",
+  "description": "A single raw, validated device location observation.",
+  "type": "object",
+  "x-owning-domain": "Location Telemetry",
+  "x-authoritative-storage": "Kafka (transient) -> short-lived PostgreSQL/object storage buffer, time-partitioned",
+  "x-privacy-classification": "precise_private_location",
+  "x-immutable-fields": [
+    "id",
+    "device_id",
+    "navigation_session_id",
+    "location",
+    "accuracy_m",
+    "heading",
+    "speed_mps",
+    "sequence",
+    "client_observed_at",
+    "server_received_at"
+  ],
+  "x-mutable-fields": [
+    "clock_skew_suspected",
+    "implausible"
+  ],
+  "x-deletion-semantics": "hard-delete within a short, explicit retention window (never indefinite) per docs/architecture/17-security-privacy-architecture.md",
+  "x-authorization": "System-internal only; not directly user- or admin-browsable as a raw feed.",
+  "required": [
+    "id",
+    "device_id",
+    "location",
+    "sequence",
+    "client_observed_at",
+    "server_received_at",
+    "clock_skew_suspected",
+    "implausible"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "device_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "navigation_session_id": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "location": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+    },
+    "accuracy_m": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "heading": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 360
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "speed_mps": {
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "client_observed_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "server_received_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "clock_skew_suspected": {
+      "type": "boolean"
+    },
+    "implausible": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "Device",
+      "NavigationSession"
+    ]
+  }
+}

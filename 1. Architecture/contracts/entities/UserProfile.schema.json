@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/UserProfile.schema.json",
+  "title": "UserProfile",
+  "description": "User-facing display/preference data, separate from the account/credential record.",
+  "type": "object",
+  "x-owning-domain": "Users",
+  "x-authoritative-storage": "PostgreSQL identity.user_profile",
+  "x-privacy-classification": "account_information",
+  "x-immutable-fields": [
+    "user_id",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "display_name",
+    "locale",
+    "unit_preference",
+    "updated_at"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "user_id",
+    "display_name",
+    "locale",
+    "unit_preference",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "user_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "locale": {
+      "type": "string"
+    },
+    "unit_preference": {
+      "type": "string",
+      "enum": [
+        "metric",
+        "imperial"
+      ]
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "updated_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "User"
+    ]
+  }
+}

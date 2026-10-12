@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/MapDatasetVersion.schema.json",
+  "title": "MapDatasetVersion",
+  "description": "Versioned lineage record for a published snapshot of canonical geospatial data. Referred to as MapDataVersion in Volume 1 docs \u2014 same entity.",
+  "type": "object",
+  "x-owning-domain": "Geographic/Address Data",
+  "x-authoritative-storage": "PostgreSQL geodata.map_data_version + object storage snapshots",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id",
+    "version_number",
+    "source_summary",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "status",
+    "published_at"
+  ],
+  "x-deletion-semantics": "never deleted (append-only lineage)",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "version_number",
+    "status",
+    "source_summary",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "version_number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/MapDataVersionStatus/values"
+    },
+    "source_summary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "license": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "supersedes_version_id": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "regional_coverage": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "schema_version": {
+      "type": "integer"
+    },
+    "published_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "MapDataVersionStatus"
+}

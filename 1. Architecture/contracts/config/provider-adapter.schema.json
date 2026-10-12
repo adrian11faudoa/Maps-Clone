@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/config/provider-adapter.schema.json",
+  "title": "ProviderAdapterConfig",
+  "description": "Common configuration shape for every external-provider adapter (geographic data source, traffic provider, transit feed, push/email notification provider, malware-scanning provider). See docs/architecture/19-deployment-scalability-integration-architecture.md 'External integration boundaries'. Each adapter's runtime config extends this shape via provider_specific.",
+  "type": "object",
+  "required": ["provider_name", "provider_class", "auth", "timeout_ms", "retry", "circuit_breaker", "fallback_behavior"],
+  "properties": {
+    "provider_name": {
+      "type": "string",
+      "description": "Human-readable identifier for this configured provider instance, e.g. 'osm-extract-primary', 'traffic-vendor-a', 'apns-production'."
+    },
+    "provider_class": {
+      "type": "string",
+      "enum": ["geographic_data", "traffic", "transit", "push_notification", "email", "content_scanning", "identity_federation"]
+    },
+    "enabled": { "type": "boolean", "default": true },
+    "auth": {
+      "type": "object",
+      "required": ["mechanism", "secret_ref"],
+      "properties": {
+        "mechanism": { "type": "string", "enum": ["api_key", "oauth_client_credentials", "certificate", "signed_url", "none"] },
+        "secret_ref": { "type": "string", "description": "Opaque reference into the secrets manager; never the secret value itself." }
+      }
+    },
+    "timeout_ms": { "type": "integer", "minimum": 1 },
+    "retry": {
+      "type": "object",
+      "properties": {
+        "max_attempts": { "type": "integer", "minimum": 1, "default": 3 },
+        "base_delay_ms": { "type": "integer", "minimum": 1, "default": 500 },
+        "multiplier": { "type": "number", "minimum": 1, "default": 2.0 },
+        "jitter": { "type": "boolean", "default": true }
+      }
+    },
+    "circuit_breaker": {
+      "type": "object",
+      "properties": {
+        "failure_threshold_pct": { "type": "number", "minimum": 0, "maximum": 100, "default": 50 },
+        "window_ms": { "type": "integer", "minimum": 1, "default": 10000 },
+        "open_duration_ms": { "type": "integer", "minimum": 1, "default": 30000 }
+      }
+    },
+    "rate_limit": {
+      "type": "object",
+      "properties": {
+        "requests_per_minute": { "type": "integer", "minimum": 1 },
+        "daily_quota": { "type": ["integer", "null"] }
+      }
+    },
+    "fallback_behavior": {
+      "type": "string",
+      "enum": [
+        "continue_serving_last_published_version",
+        "degrade_non_traffic_aware",
+        "queue_and_retry",
+        "block_pending_result",
+        "fail_request"
+      ],
+      "description": "Which documented degradation behavior (23-realtime-navigation-protocol.md failure matrix, 09-geospatial-data-architecture.md) this provider's failure triggers."
+    },
+    "provider_specific": {
+      "type": "object",
+      "description": "Provider-specific fields not covered by the shared shape (e.g., an OSM extract's regional coverage list, a push provider's collapse-id support flag). Never leaks into domain logic or the public API contract per 19-...md's adapter boundary rule."
+    }
+  },
+  "additionalProperties": false
+}

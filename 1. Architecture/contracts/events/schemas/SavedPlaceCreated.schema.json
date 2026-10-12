@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/SavedPlaceCreated.schema.json",
+  "title": "SavedPlaceCreated",
+  "description": "Published by Saved Places when a user saves a place.",
+  "type": "object",
+  "required": [
+    "saved_place_id",
+    "user_id",
+    "place_id"
+  ],
+  "properties": {
+    "saved_place_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "place_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    }
+  },
+  "additionalProperties": false
+}

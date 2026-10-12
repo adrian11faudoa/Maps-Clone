@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/enums/registry.json",
+  "title": "EnumRegistry",
+  "description": "Canonical enumeration values used across APIs, events, database columns, and clients. This is the single source of truth for every status/enum string in the platform — no other artifact may define a competing value set for the same concept. See docs/architecture/22-canonical-entities-and-enums.md.",
+  "enums": {
+    "AccountStatus": {
+      "values": ["active", "suspended", "deleted"],
+      "meaning": {
+        "active": "Normal account in good standing.",
+        "suspended": "Access blocked by an admin action; data retained; reversible.",
+        "deleted": "User-initiated or admin-initiated deletion cascade has run; terminal."
+      },
+      "terminal": ["deleted"],
+      "transitions": {
+        "active": ["suspended", "deleted"],
+        "suspended": ["active", "deleted"],
+        "deleted": []
+      }
+    },
+    "SessionStatus": {
+      "values": ["active", "revoked", "expired"],
+      "meaning": {
+        "active": "Refresh token valid and not revoked.",
+        "revoked": "Explicitly invalidated (logout, reuse-detection, admin, password reset).",
+        "expired": "Passed its absolute or sliding TTL without being explicitly revoked."
+      },
+      "terminal": ["revoked", "expired"],
+      "transitions": { "active": ["revoked", "expired"], "revoked": [], "expired": [] }
+    },
+    "PlaceStatus": {
+      "values": ["active", "moderated_hidden", "deleted"],
+      "meaning": {
+        "active": "Publicly visible.",
+        "moderated_hidden": "Hidden from public read/search by moderation decision; retained.",
+        "deleted": "Soft-deleted/tombstoned; never physically purged (integrity/audit)."
+      },
+      "terminal": ["deleted"],
+      "transitions": {
+        "active": ["moderated_hidden", "deleted"],
+        "moderated_hidden": ["active", "deleted"],
+        "deleted": []
+      }
+    },
+    "ContributionStatus": {
+      "values": ["pending", "approved", "rejected", "withdrawn"],
+      "meaning": {
+        "pending": "Submitted, awaiting moderation decision.",
+        "approved": "Moderator/admin approved; Places has applied or is applying the mutation.",
+        "rejected": "Moderator/admin rejected; no canonical mutation applied.",
+        "withdrawn": "Submitter withdrew before a decision was made."
+      },
+      "terminal": ["approved", "rejected", "withdrawn"],
+      "transitions": {
+        "pending": ["approved", "rejected", "withdrawn"],
+        "approved": [], "rejected": [], "withdrawn": []
+      }
+    },
+    "ReviewStatus": {
+      "values": ["visible", "hidden", "deleted"],
+      "meaning": {
+        "visible": "Publicly visible.",
+        "hidden": "Hidden by moderation decision; retained for audit.",
+        "deleted": "Removed by its own author; tombstoned, not purged."
+      },
+      "terminal": ["deleted"],
+      "transitions": {
+        "visible": ["hidden", "deleted"],
+        "hidden": ["visible", "deleted"],
+        "deleted": []
+      }
+    },
+    "MediaStatus": {
+      "values": ["requested", "uploading", "uploaded", "scanning", "processing", "ready", "rejected", "removed"],
+      "meaning": {
+        "requested": "Pre-signed upload URL issued, binary not yet received.",
+        "uploading": "Client is transferring the binary to object storage (transient, not always observed server-side).",
+        "uploaded": "Object storage confirms the binary landed; awaiting validation.",
+        "scanning": "Malware/content scanning provider in progress.",
+        "processing": "Passed scanning; derivative generation in progress.",
+        "ready": "Derivatives generated and published; visible per its context's visibility rules.",
+        "rejected": "Failed validation, scanning, or structural checks; binary deleted.",
+        "removed": "Removed by uploader or moderation after having been ready; binary scheduled for deletion."
+      },
+      "terminal": ["rejected", "removed"],
+      "transitions": {
+        "requested": ["uploading", "rejected"],
+        "uploading": ["uploaded", "rejected"],
+        "uploaded": ["scanning", "rejected"],
+        "scanning": ["processing", "rejected"],
+        "processing": ["ready", "rejected"],
+        "ready": ["removed"],
+        "rejected": [],
+        "removed": []
+      }
+    },
+    "NavigationSessionStatus": {
+      "values": ["active", "paused", "rerouting", "completed", "cancelled", "expired"],
+      "meaning": {
+        "active": "Currently navigating; accepting location updates.",
+        "paused": "No location update within the grace period; state preserved for resumption.",
+        "rerouting": "Sustained off-route detected; new route being computed.",
+        "completed": "User arrived; terminal.",
+        "cancelled": "User or system cancelled before arrival; terminal.",
+        "expired": "Paused beyond the outer resumption window without resuming; terminal."
+      },
+      "terminal": ["completed", "cancelled", "expired"],
+      "transitions": {
+        "active": ["paused", "rerouting", "completed", "cancelled"],
+        "paused": ["active", "expired", "cancelled"],
+        "rerouting": ["active", "cancelled"],
+        "completed": [], "cancelled": [], "expired": []
+      }
+    },
+    "RouteRequestStatus": {
+      "values": ["computed", "no_route_found", "failed"],
+      "meaning": {
+        "computed": "One or more routes returned successfully.",
+        "no_route_found": "Request was well-formed; no viable route exists for the constraints.",
+        "failed": "Routing engine or dependency failure prevented computation."
+      },
+      "terminal": ["computed", "no_route_found", "failed"],
+      "transitions": {}
+    },
+    "TravelMode": {
+      "values": ["driving", "walking", "cycling", "transit"],
+      "meaning": {
+        "driving": "Motor vehicle routing.",
+        "walking": "Pedestrian routing.",
+        "cycling": "Bicycle routing.",
+        "transit": "Public transit routing (requires transit data source)."
+      }
+    },
+    "CongestionLevel": {
+      "values": ["free", "light", "moderate", "heavy", "severe"],
+      "meaning": {
+        "free": "At or near free-flow reference speed.",
+        "light": "Mild slowdown.",
+        "moderate": "Noticeable slowdown.",
+        "heavy": "Significant slowdown.",
+        "severe": "Near-standstill or stopped."
+      }
+    },
+    "IncidentStatus": {
+      "values": ["active", "resolved", "expired"],
+      "meaning": {
+        "active": "Currently affecting the road network.",
+        "resolved": "Confirmed cleared (by source update or expiry of estimated duration).",
+        "expired": "No confirming update received before an internal staleness ceiling; treated as resolved for routing purposes but tagged distinctly for audit."
+      },
+      "terminal": ["resolved", "expired"],
+      "transitions": { "active": ["resolved", "expired"], "resolved": [], "expired": [] }
+    },
+    "NotificationDeliveryStatus": {
+      "values": ["pending", "sent", "failed", "suppressed"],
+      "meaning": {
+        "pending": "Queued, not yet attempted or awaiting retry.",
+        "sent": "Provider accepted/confirmed delivery.",
+        "failed": "Exhausted retries without success.",
+        "suppressed": "Not attempted because the user's preference opted the channel/category out."
+      },
+      "terminal": ["sent", "failed", "suppressed"],
+      "transitions": { "pending": ["sent", "failed", "suppressed"], "sent": [], "failed": [], "suppressed": [] }
+    },
+    "JobStatus": {
+      "values": ["queued", "active", "completed", "failed", "dead_lettered"],
+      "meaning": {
+        "queued": "Waiting for a worker.",
+        "active": "A worker is currently processing it.",
+        "completed": "Finished successfully.",
+        "failed": "A single attempt failed; will retry if attempts remain.",
+        "dead_lettered": "Exhausted max attempts; moved to the DLQ topic/table."
+      },
+      "terminal": ["completed", "dead_lettered"],
+      "transitions": {
+        "queued": ["active"],
+        "active": ["completed", "failed"],
+        "failed": ["queued", "dead_lettered"],
+        "completed": [], "dead_lettered": []
+      }
+    },
+    "ModerationCaseStatus": {
+      "values": ["open", "closed"],
+      "meaning": { "open": "Awaiting or under moderator review.", "closed": "Decision recorded." },
+      "terminal": ["closed"],
+      "transitions": { "open": ["closed"], "closed": [] }
+    },
+    "ModerationDecision": {
+      "values": ["approve", "reject", "escalate", "request_more_info"],
+      "meaning": {
+        "approve": "Subject/contribution is accepted as-is.",
+        "reject": "Subject/contribution is rejected.",
+        "escalate": "Referred to a higher-privilege moderator/admin.",
+        "request_more_info": "Returned to the submitter/reporter for clarification; case stays open."
+      }
+    },
+    "MapDataVersionStatus": {
+      "values": ["received", "validating", "validated", "rejected", "building", "published", "superseded", "rolled_back"],
+      "meaning": {
+        "received": "Raw snapshot ingested, not yet processed.",
+        "validating": "Normalization/validation stage in progress.",
+        "validated": "Passed the quality gate (docs/architecture/09-geospatial-data-architecture.md).",
+        "rejected": "Failed the quality gate; previous published version remains authoritative.",
+        "building": "Derived-product builds (search index, tiles, routing graph) in progress.",
+        "published": "Live as the current authoritative version.",
+        "superseded": "A later version has since been published; retained for rollback window.",
+        "rolled_back": "Was published, then explicitly reverted from due to a discovered issue."
+      },
+      "terminal": ["rejected", "superseded", "rolled_back"],
+      "transitions": {
+        "received": ["validating"],
+        "validating": ["validated", "rejected"],
+        "validated": ["building"],
+        "building": ["published"],
+        "published": ["superseded", "rolled_back"],
+        "rejected": [], "superseded": [], "rolled_back": []
+      }
+    }
+  }
+}

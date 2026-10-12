@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/RouteLeg.schema.json",
+  "title": "RouteLeg",
+  "description": "One origin/destination/waypoint-to-waypoint segment of a Route.",
+  "type": "object",
+  "x-owning-domain": "Routing",
+  "x-authoritative-storage": "Same store as Route (embedded/child rows)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "route_id",
+    "leg_index",
+    "distance_m",
+    "duration_s"
+  ],
+  "x-mutable-fields": [],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "route_id",
+    "leg_index",
+    "distance_m",
+    "duration_s"
+  ],
+  "properties": {
+    "route_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "leg_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "distance_m": {
+      "type": "number",
+      "minimum": 0
+    },
+    "duration_s": {
+      "type": "number",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "Route"
+    ],
+    "has_many": [
+      "RouteStep"
+    ]
+  }
+}

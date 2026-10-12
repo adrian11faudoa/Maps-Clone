@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/IncidentResolved.schema.json",
+  "title": "IncidentResolved",
+  "description": "Published by Traffic when an incident is resolved/expired.",
+  "type": "object",
+  "required": [
+    "incident_id"
+  ],
+  "properties": {
+    "incident_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    }
+  },
+  "additionalProperties": false
+}

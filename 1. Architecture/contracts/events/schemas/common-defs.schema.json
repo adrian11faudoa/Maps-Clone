@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/common-defs.schema.json",
+  "title": "CommonDefs",
+  "description": "Shared type definitions referenced by event payload schemas. See docs/architecture/05-identifier-time-coordinate-model.md.",
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+    },
+    "geoPoint": {
+      "type": "object",
+      "required": ["type", "coordinates"],
+      "properties": {
+        "type": { "const": "Point" },
+        "coordinates": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "[lng, lat]"
+        }
+      },
+      "additionalProperties": false
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

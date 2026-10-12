@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/PlaceCategory.schema.json",
+  "title": "PlaceCategory",
+  "description": "Canonical category taxonomy (slug-keyed) plus the join between a Place and its assigned categories. Two physical tables in docs/architecture/10-database-postgis-architecture.md (places.category, places.place_category), one bounded concept here.",
+  "type": "object",
+  "x-owning-domain": "Places",
+  "x-authoritative-storage": "PostgreSQL places.category + places.place_category",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "slug"
+  ],
+  "x-mutable-fields": [
+    "label",
+    "parent_slug",
+    "deprecated"
+  ],
+  "x-deletion-semantics": "soft-deprecate only; a category slug is never hard-deleted once any Place references it",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "slug",
+    "label",
+    "deprecated"
+  ],
+  "properties": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(\\.[a-z0-9_]+)*$"
+    },
+    "label": {
+      "type": "string"
+    },
+    "parent_slug": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "deprecated": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "Place (many-to-many via join)"
+    ]
+  }
+}

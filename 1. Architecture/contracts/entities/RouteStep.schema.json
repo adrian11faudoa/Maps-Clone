@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/RouteStep.schema.json",
+  "title": "RouteStep",
+  "description": "A single navigable maneuver within a RouteLeg.",
+  "type": "object",
+  "x-owning-domain": "Routing",
+  "x-authoritative-storage": "Same store as Route (embedded/child rows)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "route_id",
+    "leg_index",
+    "step_index",
+    "instruction",
+    "distance_m",
+    "duration_s",
+    "geometry",
+    "maneuver_type",
+    "maneuver_modifier",
+    "road_name",
+    "road_ref"
+  ],
+  "x-mutable-fields": [],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "route_id",
+    "leg_index",
+    "step_index",
+    "instruction",
+    "distance_m",
+    "duration_s",
+    "geometry",
+    "maneuver_type"
+  ],
+  "properties": {
+    "route_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "leg_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "step_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "instruction": {
+      "type": "string"
+    },
+    "distance_m": {
+      "type": "number",
+      "minimum": 0
+    },
+    "duration_s": {
+      "type": "number",
+      "minimum": 0
+    },
+    "geometry": {
+      "type": "object",
+      "description": "GeoJSON LineString"
+    },
+    "maneuver_type": {
+      "type": "string",
+      "enum": [
+        "turn",
+        "merge",
+        "roundabout",
+        "arrive",
+        "depart",
+        "continue",
+        "fork",
+        "ramp"
+      ]
+    },
+    "maneuver_modifier": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "left",
+        "right",
+        "slight_left",
+        "slight_right",
+        "sharp_left",
+        "sharp_right",
+        "straight",
+        "uturn",
+        null
+      ]
+    },
+    "road_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "road_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "exit_number": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "roundabout_exit_count": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "RouteLeg"
+    ]
+  }
+}

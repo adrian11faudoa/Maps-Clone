@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/NavigationState.schema.json",
+  "title": "NavigationState",
+  "description": "The live, frequently-updated real-time slice of NavigationSession (current position, next maneuver) held in Redis and streamed over the WebSocket protocol; NavigationSession is its durable envelope.",
+  "type": "object",
+  "x-owning-domain": "Navigation",
+  "x-authoritative-storage": "Redis nav:session:{id}:state (see docs/architecture/14-event-queue-architecture.md)",
+  "x-privacy-classification": "active_navigation_data",
+  "x-immutable-fields": [
+    "session_id"
+  ],
+  "x-mutable-fields": [
+    "sequence",
+    "current_leg_index",
+    "current_step_index",
+    "map_matched_location",
+    "off_route",
+    "eta",
+    "server_timestamp"
+  ],
+  "x-deletion-semantics": "expires with the Redis key per session lifetime + grace period",
+  "x-authorization": "Owner-only, delivered only over that user's authenticated WebSocket connection.",
+  "required": [
+    "session_id",
+    "sequence",
+    "current_leg_index",
+    "current_step_index",
+    "off_route",
+    "server_timestamp"
+  ],
+  "properties": {
+    "session_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "current_leg_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "current_step_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "map_matched_location": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "off_route": {
+      "type": "boolean"
+    },
+    "eta": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "server_timestamp": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "NavigationSession"
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/PlaceAlias.schema.json",
+  "title": "PlaceAlias",
+  "description": "An alternate name/spelling for a Place, used by Search for alias matching.",
+  "type": "object",
+  "x-owning-domain": "Places",
+  "x-authoritative-storage": "PostgreSQL places.place (embedded array) or a dedicated join table depending on implementation",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "place_id",
+    "alias"
+  ],
+  "x-mutable-fields": [],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "place_id",
+    "alias"
+  ],
+  "properties": {
+    "place_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "alias": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "belongs_to": [
+      "Place"
+    ]
+  }
+}

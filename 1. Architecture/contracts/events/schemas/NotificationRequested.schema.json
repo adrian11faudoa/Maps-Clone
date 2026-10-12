@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/NotificationRequested.schema.json",
+  "title": "NotificationRequested",
+  "description": "Published by any domain that has something to notify a user about; consumed by Notifications.",
+  "type": "object",
+  "required": [
+    "user_id",
+    "category",
+    "template_id",
+    "channels_requested",
+    "priority"
+  ],
+  "properties": {
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "navigation",
+        "account",
+        "moderation",
+        "contribution",
+        "review"
+      ]
+    },
+    "template_id": {
+      "type": "string"
+    },
+    "template_data": {
+      "type": "object"
+    },
+    "channels_requested": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "push",
+          "email",
+          "in_app"
+        ]
+      },
+      "minItems": 1
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/RouteRequest.schema.json",
+  "title": "RouteRequest",
+  "description": "A single route computation request, sampled to the routing audit store.",
+  "type": "object",
+  "x-owning-domain": "Routing",
+  "x-authoritative-storage": "Redis (hot cache) + PostgreSQL routing schema (sampled audit)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id",
+    "origin",
+    "destination",
+    "waypoints",
+    "mode",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "status"
+  ],
+  "x-deletion-semantics": "cache TTL expiry; audit sample retained per analytics retention",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "origin",
+    "destination",
+    "mode",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "origin": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+    },
+    "destination": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+    },
+    "waypoints": {
+      "type": "array",
+      "items": {
+        "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+      }
+    },
+    "mode": {
+      "$ref": "../enums/registry.json#/enums/TravelMode/values"
+    },
+    "alternatives_requested": {
+      "type": "boolean"
+    },
+    "traffic_aware_requested": {
+      "type": "boolean"
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/RouteRequestStatus/values"
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "RouteRequestStatus",
+  "x-relationships": {
+    "has_many": [
+      "Route"
+    ]
+  }
+}

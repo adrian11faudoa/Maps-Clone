@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/NavigationRerouted.schema.json",
+  "title": "NavigationRerouted",
+  "description": "Published by Navigation when a session is automatically rerouted after sustained off-route detection.",
+  "type": "object",
+  "required": [
+    "session_id",
+    "previous_route_id",
+    "new_route_id",
+    "reason"
+  ],
+  "properties": {
+    "session_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "previous_route_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "new_route_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "off_route",
+        "user_requested",
+        "traffic_update"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

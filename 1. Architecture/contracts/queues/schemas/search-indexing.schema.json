@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/queues/search-indexing.schema.json",
+  "title": "search-indexing",
+  "description": "Upserts or deletes a SearchDocument in OpenSearch in response to a consumed domain event.",
+  "type": "object",
+  "x-max-attempts": 5,
+  "x-timeout-ms": 10000,
+  "x-concurrency": "High; idempotent upserts tolerate high parallelism per document_id partition.",
+  "x-deduplication": "Natural: repeated upsert of the same document_id converges to the same final state.",
+  "required": [
+    "job_id",
+    "job_type",
+    "job_version",
+    "payload",
+    "created_at",
+    "available_at",
+    "attempt",
+    "correlation_id"
+  ],
+  "properties": {
+    "job_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "job_type": {
+      "const": "search-indexing"
+    },
+    "job_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "operation",
+        "document_id",
+        "document_type"
+      ],
+      "properties": {
+        "operation": {
+          "type": "string",
+          "enum": [
+            "upsert",
+            "delete"
+          ]
+        },
+        "document_id": {
+          "type": "string"
+        },
+        "document_type": {
+          "type": "string",
+          "enum": [
+            "place",
+            "administrative_region",
+            "landmark"
+          ]
+        },
+        "source_event_id": {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "available_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "correlation_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "causation_id": {
+      "anyOf": [
+        {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

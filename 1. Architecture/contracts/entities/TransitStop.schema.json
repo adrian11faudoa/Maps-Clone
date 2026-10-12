@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/TransitStop.schema.json",
+  "title": "TransitStop",
+  "description": "A transit stop/station, sourced from a GTFS-compatible transit feed. Reserved boundary \u2014 no implementation in this volume; schema fixed to prevent incompatible future definitions.",
+  "type": "object",
+  "x-owning-domain": "Geographic/Address Data (transit feed ingestion, future)",
+  "x-authoritative-storage": "PostgreSQL/PostGIS geodata (reserved)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id",
+    "location"
+  ],
+  "x-mutable-fields": [
+    "name",
+    "external_ids"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "name",
+    "location"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "name": {
+      "type": "string"
+    },
+    "location": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+    },
+    "external_ids": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

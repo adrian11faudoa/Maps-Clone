@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/User.schema.json",
+  "title": "User",
+  "description": "Canonical account record. Distinct from UserProfile (display/preference data).",
+  "type": "object",
+  "x-owning-domain": "Identity",
+  "x-authoritative-storage": "PostgreSQL identity.user_account",
+  "x-privacy-classification": "account_information",
+  "x-immutable-fields": [
+    "id",
+    "email",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "status",
+    "updated_at",
+    "deleted_at"
+  ],
+  "x-deletion-semantics": "soft-delete then scheduled hard-delete cascade per docs/architecture/17-security-privacy-architecture.md",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "email",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/AccountStatus/values"
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "updated_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "deleted_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "AccountStatus",
+  "x-relationships": {
+    "has_one": [
+      "UserProfile"
+    ],
+    "has_many": [
+      "Device",
+      "Session",
+      "SavedPlace",
+      "Contribution",
+      "Review"
+    ]
+  }
+}

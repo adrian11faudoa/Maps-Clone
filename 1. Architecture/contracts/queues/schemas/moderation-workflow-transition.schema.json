@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/queues/moderation-workflow-transition.schema.json",
+  "title": "moderation-workflow-transition",
+  "description": "Applies a moderation case state transition to the owning domain (e.g., ContributionApproved -> apply to Places).",
+  "type": "object",
+  "x-max-attempts": 3,
+  "x-timeout-ms": 10000,
+  "x-concurrency": "Low-to-moderate; case-state-machine transitions are naturally idempotent.",
+  "x-deduplication": "Re-applying the same transition to a case already in the target state is a no-op.",
+  "required": [
+    "job_id",
+    "job_type",
+    "job_version",
+    "payload",
+    "created_at",
+    "available_at",
+    "attempt",
+    "correlation_id"
+  ],
+  "properties": {
+    "job_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "job_type": {
+      "const": "moderation-workflow-transition"
+    },
+    "job_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "moderation_case_id",
+        "subject_type",
+        "subject_id",
+        "decision"
+      ],
+      "properties": {
+        "moderation_case_id": {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        "subject_type": {
+          "type": "string",
+          "enum": [
+            "place",
+            "review",
+            "media",
+            "contribution",
+            "user"
+          ]
+        },
+        "subject_id": {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "reject",
+            "escalate",
+            "request_more_info"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "available_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "correlation_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "causation_id": {
+      "anyOf": [
+        {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

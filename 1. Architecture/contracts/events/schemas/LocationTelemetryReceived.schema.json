@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/LocationTelemetryReceived.schema.json",
+  "title": "LocationTelemetryReceived",
+  "description": "Published by Location Telemetry ingestion for each validated raw location event. Consumed only by Traffic's aggregation pipeline (never re-exposed raw).",
+  "type": "object",
+  "required": [
+    "location_event_id",
+    "device_id",
+    "location",
+    "client_observed_at",
+    "server_received_at"
+  ],
+  "properties": {
+    "location_event_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "device_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "location": {
+      "$ref": "common-defs.schema.json#/$defs/geoPoint"
+    },
+    "accuracy_m": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "client_observed_at": {
+      "$ref": "common-defs.schema.json#/$defs/timestamp"
+    },
+    "server_received_at": {
+      "$ref": "common-defs.schema.json#/$defs/timestamp"
+    },
+    "clock_skew_suspected": {
+      "type": "boolean",
+      "default": false
+    },
+    "implausible": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

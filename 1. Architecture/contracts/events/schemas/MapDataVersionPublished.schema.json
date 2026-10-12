@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/MapDataVersionPublished.schema.json",
+  "title": "MapDataVersionPublished",
+  "description": "Published by the geospatial pipeline (Geographic/Address Data domain) when a new authoritative MapDataVersion is published.",
+  "type": "object",
+  "required": [
+    "map_data_version_id",
+    "version_number",
+    "source_summary"
+  ],
+  "properties": {
+    "map_data_version_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "version_number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "source_summary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "license": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "license"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

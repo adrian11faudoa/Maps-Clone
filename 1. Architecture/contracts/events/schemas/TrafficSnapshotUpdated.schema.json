@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/TrafficSnapshotUpdated.schema.json",
+  "title": "TrafficSnapshotUpdated",
+  "description": "Published by Traffic when an aggregate traffic snapshot for a road segment/time bucket is published.",
+  "type": "object",
+  "required": [
+    "road_segment_id",
+    "time_bucket",
+    "congestion_level",
+    "confidence",
+    "sample_count"
+  ],
+  "properties": {
+    "road_segment_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "time_bucket": {
+      "$ref": "common-defs.schema.json#/$defs/timestamp"
+    },
+    "congestion_level": {
+      "type": "string",
+      "enum": [
+        "free",
+        "light",
+        "moderate",
+        "heavy",
+        "severe"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "sample_count": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "additionalProperties": false
+}

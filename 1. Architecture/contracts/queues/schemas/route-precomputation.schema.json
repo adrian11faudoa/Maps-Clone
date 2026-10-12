@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/queues/route-precomputation.schema.json",
+  "title": "route-precomputation",
+  "description": "Optional, low-priority pre-warming of popular route cache entries. Boundary reserved; not required for initial implementation.",
+  "type": "object",
+  "x-max-attempts": 2,
+  "x-timeout-ms": 5000,
+  "x-concurrency": "Low priority; yields to user-facing route computation under load.",
+  "x-deduplication": "Cache-key overwrite is naturally idempotent.",
+  "required": [
+    "job_id",
+    "job_type",
+    "job_version",
+    "payload",
+    "created_at",
+    "available_at",
+    "attempt",
+    "correlation_id"
+  ],
+  "properties": {
+    "job_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "job_type": {
+      "const": "route-precomputation"
+    },
+    "job_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload": {
+      "type": "object",
+      "required": [
+        "origin",
+        "destination",
+        "mode"
+      ],
+      "properties": {
+        "origin": {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+        },
+        "destination": {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "driving",
+            "walking",
+            "cycling",
+            "transit"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "created_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "available_at": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "correlation_id": {
+      "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "causation_id": {
+      "anyOf": [
+        {
+          "$ref": "../../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

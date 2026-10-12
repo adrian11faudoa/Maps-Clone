@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/ReviewUpdated.schema.json",
+  "title": "ReviewUpdated",
+  "description": "Published by Reviews & Ratings when a review is edited.",
+  "type": "object",
+  "required": [
+    "review_id",
+    "place_id",
+    "changed_fields"
+  ],
+  "properties": {
+    "review_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "place_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "changed_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}

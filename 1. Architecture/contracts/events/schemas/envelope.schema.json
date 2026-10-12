@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/envelope.schema.json",
+  "title": "EventEnvelope",
+  "description": "Binding envelope for every domain event on the platform's Kafka/Redpanda bus. See docs/architecture/14-event-queue-architecture.md.",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "event_version",
+    "aggregate_type",
+    "aggregate_id",
+    "producer",
+    "occurred_at",
+    "published_at",
+    "correlation_id",
+    "schema_version",
+    "data"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$",
+      "description": "ULID, unique per publication (redeliveries reuse the same value)."
+    },
+    "event_type": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z]+$",
+      "description": "PascalCase event type name, from contracts/events/registry.md."
+    },
+    "event_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Increments on a breaking payload change to this specific event_type."
+    },
+    "aggregate_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "aggregate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "producer": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Deployable name that published the event, e.g. core-api."
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event-time (when the business fact became true), RFC3339 UTC."
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Processing-time (when actually published to the bus), RFC3339 UTC."
+    },
+    "correlation_id": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+    },
+    "trace_id": {
+      "type": "string",
+      "description": "W3C trace context trace-id, best-effort.",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Version of this envelope schema itself."
+    },
+    "data": {
+      "type": "object",
+      "description": "Type-specific payload, validated against contracts/events/schemas/{event_type}.schema.json"
+    }
+  },
+  "additionalProperties": false
+}

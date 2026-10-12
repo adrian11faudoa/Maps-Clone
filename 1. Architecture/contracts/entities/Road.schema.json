@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/Road.schema.json",
+  "title": "Road",
+  "description": "A named road, composed of one or more RoadSegments.",
+  "type": "object",
+  "x-owning-domain": "Geographic/Address Data",
+  "x-authoritative-storage": "PostgreSQL/PostGIS geodata (derived grouping over road_segment.road_ref)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id"
+  ],
+  "x-mutable-fields": [
+    "name",
+    "ref",
+    "road_class"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "road_class"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "road_class": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "has_many": [
+      "RoadSegment"
+    ]
+  }
+}

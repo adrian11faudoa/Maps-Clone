@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/TransitRoute.schema.json",
+  "title": "TransitRoute",
+  "description": "A transit line/route (e.g., a bus or metro line). Reserved boundary \u2014 no implementation in this volume.",
+  "type": "object",
+  "x-owning-domain": "Geographic/Address Data (transit feed ingestion, future)",
+  "x-authoritative-storage": "PostgreSQL/PostGIS geodata (reserved)",
+  "x-privacy-classification": "public_place_data",
+  "x-immutable-fields": [
+    "id"
+  ],
+  "x-mutable-fields": [
+    "name",
+    "mode"
+  ],
+  "x-deletion-semantics": "hard-delete",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "name",
+    "mode"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "name": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "bus",
+        "rail",
+        "subway",
+        "tram",
+        "ferry"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-relationships": {
+    "has_many": [
+      "TransitStop"
+    ]
+  }
+}

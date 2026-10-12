@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/NavigationEnded.schema.json",
+  "title": "NavigationEnded",
+  "description": "Published by Navigation when a session ends.",
+  "type": "object",
+  "required": [
+    "session_id",
+    "user_id",
+    "end_reason"
+  ],
+  "properties": {
+    "session_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "end_reason": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "cancelled",
+        "expired"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

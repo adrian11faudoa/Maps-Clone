@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/config/service-config.schema.json",
+  "title": "ServiceConfig",
+  "description": "Common configuration schema every backend deployable validates at startup. See docs/architecture/19-deployment-scalability-integration-architecture.md. Services extend this with a domain-specific 'extensions' object rather than diverging from the shared shape.",
+  "type": "object",
+  "required": ["service_name", "environment", "http", "database", "redis", "observability"],
+  "properties": {
+    "service_name": {
+      "type": "string",
+      "enum": [
+        "core-api", "search-api", "routing-api", "routing-engine",
+        "navigation-api", "traffic-service", "geodata-pipeline",
+        "media-service", "notification-worker", "analytics-pipeline"
+      ]
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["local", "ci", "test", "development", "staging", "production", "dr"]
+    },
+    "http": {
+      "type": "object",
+      "required": ["port"],
+      "properties": {
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "request_timeout_ms": { "type": "integer", "minimum": 1, "default": 10000 },
+        "body_limit_bytes": { "type": "integer", "minimum": 1, "default": 1048576 }
+      }
+    },
+    "database": {
+      "type": "object",
+      "required": ["schema", "pool"],
+      "properties": {
+        "schema": { "type": "string", "description": "Owned PostgreSQL schema namespace, per docs/architecture/10-database-postgis-architecture.md" },
+        "pool": {
+          "type": "object",
+          "properties": {
+            "min": { "type": "integer", "minimum": 0, "default": 1 },
+            "max": { "type": "integer", "minimum": 1, "default": 10 },
+            "idle_timeout_ms": { "type": "integer", "minimum": 1, "default": 30000 }
+          }
+        },
+        "read_replica_enabled": { "type": "boolean", "default": false },
+        "query_timeout_ms": { "type": "integer", "minimum": 1, "default": 5000 }
+      }
+    },
+    "redis": {
+      "type": "object",
+      "required": ["key_prefix"],
+      "properties": {
+        "key_prefix": { "type": "string", "description": "Namespace prefix matching the tables in docs/architecture/14-event-queue-architecture.md" },
+        "connect_timeout_ms": { "type": "integer", "minimum": 1, "default": 200 },
+        "command_timeout_ms": { "type": "integer", "minimum": 1, "default": 200 },
+        "fail_open": { "type": "boolean", "default": true, "description": "Whether this service degrades gracefully on Redis unavailability, per its documented fallback behavior" }
+      }
+    },
+    "kafka": {
+      "type": "object",
+      "properties": {
+        "brokers": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "consumer_group": { "type": "string" },
+        "topics_produced": { "type": "array", "items": { "type": "string" } },
+        "topics_consumed": { "type": "array", "items": { "type": "string" } },
+        "retry": {
+          "type": "object",
+          "properties": {
+            "max_attempts": { "type": "integer", "minimum": 1, "default": 5 },
+            "base_delay_ms": { "type": "integer", "minimum": 1, "default": 500 },
+            "multiplier": { "type": "number", "minimum": 1, "default": 2.0 },
+            "jitter": { "type": "boolean", "default": true }
+          }
+        }
+      }
+    },
+    "rate_limiting": {
+      "type": "object",
+      "properties": {
+        "endpoint_classes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "requests_per_minute": { "type": "integer", "minimum": 1 },
+              "burst": { "type": "integer", "minimum": 1 }
+            },
+            "required": ["requests_per_minute"]
+          }
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "access_token_ttl_seconds": { "type": "integer", "minimum": 60, "default": 900 },
+        "refresh_token_ttl_days": { "type": "integer", "minimum": 1, "default": 30 },
+        "refresh_token_absolute_ttl_days": { "type": "integer", "minimum": 1, "default": 180 },
+        "admin_access_token_ttl_seconds": { "type": "integer", "minimum": 60, "default": 300 },
+        "public_key_url": { "type": "string", "format": "uri" }
+      }
+    },
+    "circuit_breaker": {
+      "type": "object",
+      "properties": {
+        "failure_threshold_pct": { "type": "number", "minimum": 0, "maximum": 100, "default": 50 },
+        "window_ms": { "type": "integer", "minimum": 1, "default": 10000 },
+        "open_duration_ms": { "type": "integer", "minimum": 1, "default": 30000 }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "required": ["otel_collector_endpoint"],
+      "properties": {
+        "otel_collector_endpoint": { "type": "string", "format": "uri" },
+        "log_level": { "type": "string", "enum": ["debug", "info", "warn", "error"], "default": "info" },
+        "trace_sample_ratio": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.1 }
+      }
+    },
+    "feature_flags": {
+      "type": "object",
+      "properties": {
+        "provider": { "type": "string" },
+        "refresh_interval_ms": { "type": "integer", "minimum": 1000, "default": 60000 }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Service-specific configuration not covered by the shared schema (e.g., routing-engine's graph artifact path, media-service's scanning provider settings)."
+    }
+  },
+  "additionalProperties": false
+}

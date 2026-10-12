@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/RouteComputed.schema.json",
+  "title": "RouteComputed",
+  "description": "Published by Routing when a route computation completes successfully.",
+  "type": "object",
+  "required": [
+    "route_request_id",
+    "route_ids",
+    "used_live_traffic"
+  ],
+  "properties": {
+    "route_request_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "route_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "common-defs.schema.json#/$defs/ulid"
+      },
+      "minItems": 1
+    },
+    "used_live_traffic": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

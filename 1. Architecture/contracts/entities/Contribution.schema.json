@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/Contribution.schema.json",
+  "title": "Contribution",
+  "description": "A user-submitted proposed create/update/correction to a Place, gated by moderation before canonical application.",
+  "type": "object",
+  "x-owning-domain": "Contributions",
+  "x-authoritative-storage": "PostgreSQL places.contribution",
+  "x-privacy-classification": "reviews_contributions",
+  "x-immutable-fields": [
+    "id",
+    "place_id",
+    "user_id",
+    "type",
+    "proposed_changes",
+    "created_at"
+  ],
+  "x-mutable-fields": [
+    "status",
+    "decided_at"
+  ],
+  "x-deletion-semantics": "soft-delete only (audit retained)",
+  "x-authorization": "Submitter can view/withdraw own; moderator/admin can decide any.",
+  "required": [
+    "id",
+    "user_id",
+    "type",
+    "proposed_changes",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "place_id": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "user_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "correction"
+      ]
+    },
+    "proposed_changes": {
+      "type": "object"
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/ContributionStatus/values"
+    },
+    "created_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "decided_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "ContributionStatus",
+  "x-relationships": {
+    "belongs_to": [
+      "Place",
+      "User"
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/ReviewCreated.schema.json",
+  "title": "ReviewCreated",
+  "description": "Published by Reviews & Ratings when a review is created.",
+  "type": "object",
+  "required": [
+    "review_id",
+    "place_id",
+    "user_id",
+    "rating"
+  ],
+  "properties": {
+    "review_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "place_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "rating": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    }
+  },
+  "additionalProperties": false
+}

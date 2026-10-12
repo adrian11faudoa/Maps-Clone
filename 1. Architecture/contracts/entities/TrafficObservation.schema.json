@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/TrafficObservation.schema.json",
+  "title": "TrafficObservation",
+  "description": "A single raw traffic input (from telemetry aggregation or an external feed) prior to aggregation into a TrafficSegmentState; not independently persisted beyond the aggregation window.",
+  "type": "object",
+  "x-owning-domain": "Traffic",
+  "x-authoritative-storage": "Kafka stream (transient, consumed directly into aggregation)",
+  "x-privacy-classification": "aggregated_traffic",
+  "x-immutable-fields": [
+    "road_segment_id",
+    "observed_at",
+    "speed_mps",
+    "source"
+  ],
+  "x-mutable-fields": [],
+  "x-deletion-semantics": "not independently retained; folds into TrafficSegmentState aggregation and is discarded",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "road_segment_id",
+    "observed_at",
+    "speed_mps",
+    "source"
+  ],
+  "properties": {
+    "road_segment_id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "observed_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "speed_mps": {
+      "type": "number",
+      "minimum": 0
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "telemetry_aggregate",
+        "external_provider"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/UserProfileUpdated.schema.json",
+  "title": "UserProfileUpdated",
+  "description": "Published by Users when a profile is updated.",
+  "type": "object",
+  "required": [
+    "user_id",
+    "changed_fields"
+  ],
+  "properties": {
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "changed_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}

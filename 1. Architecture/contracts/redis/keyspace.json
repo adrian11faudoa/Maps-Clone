@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/redis/keyspace.json",
+  "title": "RedisKeyspace",
+  "description": "Canonical Redis key conventions. Single source of truth — no service may invent a key pattern outside this registry. See docs/architecture/24-queue-and-redis-keyspace-contracts.md and docs/architecture/14-event-queue-architecture.md.",
+  "namespaces": [
+    {
+      "pattern": "session:denylist:{session_id}",
+      "owner": "Identity",
+      "purpose": "Revoked-session fast-lookup denylist so a revoked session cannot be used even with an unexpired access token.",
+      "value_type": "string (flag)",
+      "serializer": "raw",
+      "ttl": "remaining access-token lifetime (<= 15 minutes; <= 5 minutes for admin sessions)",
+      "invalidation": "natural TTL expiry",
+      "max_item_size_bytes": 16,
+      "failure_behavior": "fail open (trust token expiry alone) — degraded revocation window, never a hard auth failure"
+    },
+    {
+      "pattern": "ratelimit:{principal}:{endpoint_class}:{window}",
+      "owner": "API edge",
+      "purpose": "Sliding/fixed-window rate-limit counters.",
+      "value_type": "integer counter",
+      "serializer": "raw",
+      "ttl": "= rate-limit window duration",
+      "invalidation": "natural TTL expiry",
+      "max_item_size_bytes": 16,
+      "failure_behavior": "fail open with a conservative default limit enforced at the edge process level, logged as degraded"
+    },
+    {
+      "pattern": "search:cache:{normalized_query_hash}",
+      "owner": "Search",
+      "purpose": "Short-TTL response cache for free-text search results.",
+      "value_type": "JSON (SearchResultPage)",
+      "serializer": "JSON (UTF-8)",
+      "ttl": "30 seconds (default; configurable)",
+      "invalidation": "natural TTL expiry; explicit purge on exact-match PlaceUpdated where cheap",
+      "max_item_size_bytes": 65536,
+      "failure_behavior": "cache miss, serve from OpenSearch directly"
+    },
+    {
+      "pattern": "autocomplete:cache:{normalized_prefix_hash}:{near_geohash}",
+      "owner": "Search",
+      "purpose": "Aggressively cached autocomplete suggestions for repeat-prefix typing bursts.",
+      "value_type": "JSON (AutocompleteSuggestion[])",
+      "serializer": "JSON (UTF-8)",
+      "ttl": "15 seconds (default; configurable)",
+      "invalidation": "natural TTL expiry",
+      "max_item_size_bytes": 8192,
+      "failure_behavior": "cache miss, serve from OpenSearch directly"
+    },
+    {
+      "pattern": "nearby:cache:{geohash}:{radius_m}:{filters_hash}",
+      "owner": "Search / Places",
+      "purpose": "Short-TTL cache for nearby/bounded place list queries.",
+      "value_type": "JSON (PlacePage)",
+      "serializer": "JSON (UTF-8)",
+      "ttl": "30 seconds (default; configurable)",
+      "invalidation": "natural TTL expiry",
+      "max_item_size_bytes": 65536,
+      "failure_behavior": "cache miss, serve from PostGIS/OpenSearch directly"
+    },
+    {
+      "pattern": "route:cache:{request_hash}",
+      "owner": "Routing",
+      "purpose": "Deduplicates/caches identical route computation requests, bucketed by a coarse traffic-freshness time window.",
+      "value_type": "JSON (RouteResponse)",
+      "serializer": "JSON (UTF-8)",
+      "ttl": "60 seconds (default; configurable, bucketed to traffic freshness window)",
+      "invalidation": "natural TTL expiry",
+      "max_item_size_bytes": 131072,
+      "failure_behavior": "every request recomputed against the routing engine (higher load, not broken)"
+    },
+    {
+      "pattern": "nav:session:{session_id}:state",
+      "owner": "Navigation",
+      "purpose": "Live NavigationState hash: current leg/step, map-matched location, off_route, eta, server_sequence.",
+      "value_type": "hash",
+      "serializer": "hash fields, primitives raw / nested objects as JSON strings",
+      "ttl": "session lifetime + grace period (renewed on each update)",
+      "invalidation": "explicit delete on session termination; TTL as backstop",
+      "max_item_size_bytes": 4096,
+      "failure_behavior": "degrade to REST-poll-and-recompute from the navigation schema (durable state); live push unavailable until recovery"
+    },
+    {
+      "pattern": "lock:{resource}",
+      "owner": "geodata-pipeline (primarily)",
+      "purpose": "Short, operation-bound distributed mutual exclusion (e.g., serializing a specific MapDataVersion publish).",
+      "value_type": "string (lock token)",
+      "serializer": "raw",
+      "ttl": "short, operation-bound (seconds to low minutes)",
+      "invalidation": "explicit release + TTL backstop against holder crash",
+      "max_item_size_bytes": 64,
+      "failure_behavior": "publish jobs queue/wait rather than risk a race"
+    },
+    {
+      "pattern": "idempotency:{principal}:{endpoint}:{key}",
+      "owner": "API edge / per-service",
+      "purpose": "Idempotency-Key -> cached response mapping (IdempotencyRecord).",
+      "value_type": "JSON (cached response + request_fingerprint)",
+      "serializer": "JSON (UTF-8)",
+      "ttl": "24 hours",
+      "invalidation": "natural TTL expiry",
+      "max_item_size_bytes": 65536,
+      "failure_behavior": "idempotency protection temporarily unavailable; worst case is a duplicate side effect during the outage window, mitigated by unique-constraint safeguards in PostgreSQL where applicable"
+    },
+    {
+      "pattern": "queue:{job_type}:*",
+      "owner": "Per-domain workers (BullMQ convention)",
+      "purpose": "BullMQ-managed queue/job-state keys for every job_type in ../queues/registry.md.",
+      "value_type": "BullMQ-native (lists, hashes, sorted sets)",
+      "serializer": "BullMQ-native",
+      "ttl": "per BullMQ job retention config (completed/failed job retention, separate from business TTL)",
+      "invalidation": "BullMQ-managed",
+      "max_item_size_bytes": null,
+      "failure_behavior": "jobs remain queued (Redis persistence/AOF); a worker-fleet outage delays async work without losing it"
+    }
+  ]
+}

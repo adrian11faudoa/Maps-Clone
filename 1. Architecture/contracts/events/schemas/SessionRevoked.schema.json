@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/events/SessionRevoked.schema.json",
+  "title": "SessionRevoked",
+  "description": "Published by Identity when a session is revoked (logout, reuse-detection breach, account-level revocation).",
+  "type": "object",
+  "required": [
+    "session_id",
+    "user_id",
+    "reason"
+  ],
+  "properties": {
+    "session_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "user_id": {
+      "$ref": "common-defs.schema.json#/$defs/ulid"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "logout",
+        "reuse_detected",
+        "password_reset",
+        "admin_revoked",
+        "expired"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

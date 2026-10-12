@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.platform.internal/entities/TrafficIncident.schema.json",
+  "title": "TrafficIncident",
+  "description": "A discretely tracked road incident (accident, closure, hazard). Referred to as Incident in Volume 1 docs \u2014 same entity.",
+  "type": "object",
+  "x-owning-domain": "Traffic",
+  "x-authoritative-storage": "PostgreSQL/PostGIS traffic.incident",
+  "x-privacy-classification": "aggregated_traffic",
+  "x-immutable-fields": [
+    "id",
+    "type",
+    "location",
+    "source",
+    "reported_at"
+  ],
+  "x-mutable-fields": [
+    "status",
+    "road_segment_id",
+    "confidence",
+    "expected_end_at",
+    "resolved_at",
+    "description"
+  ],
+  "x-deletion-semantics": "soft-delete on resolution + bounded analytics retention window",
+  "x-authorization": "See docs/architecture/08-auth-architecture.md resource-level table.",
+  "required": [
+    "id",
+    "type",
+    "location",
+    "status",
+    "source",
+    "confidence",
+    "reported_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "accident",
+        "closure",
+        "hazard",
+        "construction"
+      ]
+    },
+    "location": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/geoPoint"
+    },
+    "road_segment_id": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/ulid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "$ref": "../enums/registry.json#/enums/IncidentStatus/values"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "external_provider",
+        "user_report"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "reported_at": {
+      "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+    },
+    "expected_end_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "resolved_at": {
+      "anyOf": [
+        {
+          "$ref": "../events/schemas/common-defs.schema.json#/$defs/timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "x-lifecycle-enum": "IncidentStatus",
+  "x-relationships": {
+    "belongs_to": [
+      "RoadSegment"
+    ]
+  }
+}
